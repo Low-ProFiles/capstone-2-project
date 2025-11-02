@@ -1,25 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Container as MapDiv, NaverMap, Marker, useNavermaps } from 'react-naver-maps';
 
+import type { SpotReq } from '@/types/course';
+
 // Define the props for the modal
 interface AddSpotModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (spot: any) => void; // A more specific type should be used
+  onSave: (spot: Omit<SpotReq, 'orderNo'>) => void; // A more specific type should be used
   orderNo: number;
 }
 
-export default function AddSpotModal({ isOpen, onClose, onSave, orderNo }: AddSpotModalProps) {
+export default function AddSpotModal({ isOpen, onClose, onSave }: AddSpotModalProps) {
   const navermaps = useNavermaps();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [map, setMap] = useState<naver.maps.Map | null>(null);
 
   useEffect(() => {
     // Reset form when modal opens
@@ -30,10 +33,20 @@ export default function AddSpotModal({ isOpen, onClose, onSave, orderNo }: AddSp
     }
   }, [isOpen]);
 
-  const handleMapClick = (e: any) => {
+  const handleMapClick = useCallback((e: naver.maps.PointerEvent) => {
     const { coord } = e;
     setPosition({ lat: coord.y, lng: coord.x });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!map || !navermaps) return;
+
+    const listener = navermaps.Event.addListener(map, "click", handleMapClick);
+
+    return () => {
+      navermaps.Event.removeListener(listener);
+    };
+  }, [map, navermaps, handleMapClick]);
 
   const handleSave = () => {
     if (!title || !position) {
@@ -41,7 +54,6 @@ export default function AddSpotModal({ isOpen, onClose, onSave, orderNo }: AddSp
       return;
     }
     onSave({
-      orderNo,
       title,
       description,
       lat: position.lat,
@@ -59,9 +71,9 @@ export default function AddSpotModal({ isOpen, onClose, onSave, orderNo }: AddSp
         <div className="space-y-4 py-4">
           <MapDiv className="h-64 w-full">
             <NaverMap
+              ref={setMap}
               defaultCenter={new navermaps.LatLng(37.5665, 126.9780)} // Default to Seoul
               defaultZoom={15}
-              onClick={handleMapClick}
             >
               {position && <Marker position={position} />}
             </NaverMap>

@@ -1,18 +1,24 @@
 
 import { useMutation } from '@tanstack/react-query';
-import { apiClient } from '../api';
+import { apiFetch } from '../api';
 import type { Login, SignUp, Token } from '@/types';
 
 // 회원가입 API 함수
 const signup = async (userData: SignUp): Promise<string> => {
-  const response = await apiClient.post('/auth/signup', userData);
-  return response.data;
+  const response = await apiFetch('/api/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(userData),
+  });
+  return response;
 };
 
 // 로그인 API 함수
 const login = async (credentials: Login): Promise<Token> => {
-  const response = await apiClient.post<Token>('/auth/login', credentials);
-  return response.data;
+  const response = await apiFetch('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+  });
+  return response;
 };
 
 // 회원가입을 위한 useMutation 훅

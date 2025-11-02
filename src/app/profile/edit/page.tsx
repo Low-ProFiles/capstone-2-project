@@ -21,7 +21,7 @@ const mockProfile = {
 export default function ProfileEditPage() {
   const [displayName, setDisplayName] = useState(mockProfile.displayName);
   const [bio, setBio] = useState(mockProfile.bio);
-  const [avatarUrl, setAvatarUrl] = useState(mockProfile.avatarUrl);
+  const [avatarUrl] = useState(mockProfile.avatarUrl);
 
   const handleSave = () => {
     // TODO: Implement actual profile update logic

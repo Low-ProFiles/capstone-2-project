@@ -43,7 +43,7 @@ export default function NewCoursePage() {
 
     try {
       const courseData = { title, description, spots };
-      const newCourse = await createCourse(courseData, token);
+      await createCourse(courseData, token);
       alert("새로운 코스가 성공적으로 생성되었습니다!");
       router.push(`/`);
     } catch (error) {

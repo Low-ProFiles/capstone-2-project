@@ -22,11 +22,9 @@ export interface CreateCourseReq {
   durationMinutes?: number;
   estimatedCost?: number;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   spots: SpotReq[];
 }
-
-export interface UpdateCourseReq extends Partial<CreateCourseReq> {}
 
 export interface CourseSummary {
   id: string; // UUID
@@ -65,7 +63,7 @@ export interface CourseDetails {
   durationMinutes?: number;
   estimatedCost?: number;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   likeCount?: number;
   purchaseCount?: number;
   reviewState: ReviewState;

@@ -1,14 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login as apiLogin, signup as apiSignup } from '@/lib/api';
+import { login as apiLogin, signup as apiSignup, type LoginDto, type SignUpDto } from '@/lib/api';
 
 // Define types for the auth context
 interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
-  login: (credentials: any) => Promise<void>;
-  signup: (userData: any) => Promise<void>;
+  login: (credentials: LoginDto) => Promise<void>;
+  signup: (userData: SignUpDto) => Promise<void>;
   logout: () => void;
   setAuthToken: (newToken: string) => void;
 }
@@ -32,13 +32,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const login = async (credentials: any) => {
+  const login = async (credentials: LoginDto) => {
     const data = await apiLogin(credentials);
     setToken(data.token);
     localStorage.setItem('authToken', data.token);
   };
 
-  const signup = async (userData: any) => {
+  const signup = async (userData: SignUpDto) => {
     await apiSignup(userData);
     // Optional: automatically log in the user after signup
     // const data = await apiLogin({ email: userData.email, password: userData.password });

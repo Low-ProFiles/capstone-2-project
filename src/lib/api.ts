@@ -1,7 +1,7 @@
 const API_BASE_URL = '';
 
 // Generic fetch function to handle common headers and errors
-const apiFetch = async (url: string, options: RequestInit = {}) => {
+export const apiFetch = async (url: string, options: RequestInit = {}) => {
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -13,7 +13,7 @@ const apiFetch = async (url: string, options: RequestInit = {}) => {
     let errorData;
     try {
       errorData = await response.json();
-    } catch (e) {
+    } catch {
       errorData = { message: response.statusText };
     }
     throw new Error(errorData.message || 'API request failed');

@@ -14,12 +14,8 @@ export default function Map({ courses }: Props) {
   const [infoWindow, setInfoWindow] = useState<naver.maps.InfoWindow | null>(null);
   const [openedSpot, setOpenedSpot] = useState<SpotRes | null>(null);
 
-  if (!navermaps) {
-    return null;
-  }
-
   useEffect(() => {
-    if (!map) return;
+    if (!map || !navermaps) return;
 
     const iw = new navermaps.InfoWindow({
       content: '',
@@ -51,8 +47,12 @@ export default function Map({ courses }: Props) {
     };
   }, [map, navermaps]);
 
+  if (!navermaps) {
+    return null;
+  }
+
   const handleMarkerClick = (spot: SpotRes) => {
-    if (!map || !infoWindow || !spot.lat || !spot.lng) return;
+    if (!map || !infoWindow || !spot.lat || !spot.lng || !navermaps) return;
 
     // Toggle logic
     if (openedSpot && openedSpot.orderNo === spot.orderNo) {
@@ -74,7 +74,7 @@ export default function Map({ courses }: Props) {
 
   return (
     <MapDiv style={{ width: '100%', height: '100%' }}>
-      <NaverMap ref={setMap} useRetinaTile={true}>
+      <NaverMap ref={setMap}>
         {courses.flatMap(course => 
           course.spots.map(spot => 
             spot.lat && spot.lng ? (

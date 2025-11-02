@@ -1,11 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../api';
+import { apiFetch } from '../api';
 import type { Category } from '@/types';
 
 // API 호출 함수
 const getCategories = async (): Promise<Category[]> => {
-  const response = await apiClient.get('/categories');
+  const response = await apiFetch('/api/categories');
   return response.data;
 };
 
