@@ -1,103 +1,87 @@
-import Image from "next/image";
+'use client';
+
+import dynamic from 'next/dynamic';
+// import { useQueries, useQuery } from "@tanstack/react-query";
+// import { getCourseById, getCourses } from "@/lib/api";
+import { CourseDetails } from "@/types";
+
+// Dynamically import the Map component to ensure it only runs on the client-side
+const Map = dynamic(() => import('@/components/common/Map'), {
+  ssr: false, // This is the key to disable server-side rendering for the map
+  loading: () => <p>Map is loading...</p>, // Optional: show a loading message
+});
+
+// Mock Data for a date course
+const mockDateCourse: CourseDetails[] = [
+  {
+    id: "course-1",
+    creatorId: "user-1",
+    creatorDisplayName: "낭만가이드",
+    categorySlug: "date-night",
+    title: "서울 야경 데이트 코스",
+    summary: "N서울타워부터 세빛섬까지, 로맨틱한 서울의 밤을 즐겨보세요.",
+    reviewState: "APPROVED",
+    spots: [
+      {
+        orderNo: 1,
+        title: "N서울타워",
+        description: "서울의 전경을 한눈에 담을 수 있는 로맨틱한 장소",
+        lat: 37.5512, // 위도
+        lng: 126.9882, // 경도
+      },
+      {
+        orderNo: 2,
+        title: "낙산공원",
+        description: "성곽길을 따라 걸으며 감상하는 도심의 야경",
+        lat: 37.5808,
+        lng: 127.0078,
+      },
+      {
+        orderNo: 3,
+        title: "세빛섬",
+        description: "한강 위에서 빛나는 아름다운 인공섬",
+        lat: 37.5119,
+        lng: 126.9956,
+      },
+    ],
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // NOTE: Temporarily using mock data. Uncomment the section below to use real API data.
+  const courses = mockDateCourse;
+  const areDetailsLoading = false;
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  /*
+  // 1. 모든 코스 목록(요약)을 가져옵니다.
+  const { data: coursesData } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => getCourses(''),
+  });
+
+  const courseSummaries = coursesData?.content || [];
+
+  // 2. 각 코스의 상세 정보를 병렬로 가져옵니다.
+  const courseDetailQueries = useQueries({
+    queries: courseSummaries.map((course: CourseSummary) => ({
+      queryKey: ['course', course.id],
+      queryFn: () => getCourseById(course.id),
+      staleTime: Infinity, // 한 번 받은 데이터는 만료되지 않도록 설정
+    })),
+  });
+
+  // 모든 상세 정보가 로드될 때까지 기다립니다.
+  const areDetailsLoading = courseDetailQueries.some(query => query.isLoading);
+
+  // 성공적으로 로드된 코스 상세 정보만 필터링합니다.
+  const courses: CourseDetails[] = courseDetailQueries
+    .filter(query => query.isSuccess && query.data)
+    .map(query => query.data);
+  */
+
+  return (
+    <div className="relative h-[calc(100vh-65px)] w-full">
+      {areDetailsLoading ? <p>Loading map data...</p> : <Map courses={courses} />}
     </div>
   );
 }
