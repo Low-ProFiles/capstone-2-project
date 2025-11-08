@@ -1,87 +1,120 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-// import { useQueries, useQuery } from "@tanstack/react-query";
-// import { getCourseById, getCourses } from "@/lib/api";
-import { CourseDetails } from "@/types";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { MOCK_COURSE, MOCK_COURSE_2, Place, Course } from "@/lib/types";
+import SpotDetailSheet from "@/components/SpotDetailSheet";
+import CourseSelectionBottomSheet from "@/components/course/CourseSelectionBottomSheet"; // Import new component
+// Removed Button import
+// Removed Menu import
 
-// Dynamically import the Map component to ensure it only runs on the client-side
-const Map = dynamic(() => import('@/components/common/Map'), {
-  ssr: false, // This is the key to disable server-side rendering for the map
-  loading: () => <p>Map is loading...</p>, // Optional: show a loading message
-});
+// Dynamically import MapView with ssr: false
+const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
-// Mock Data for a date course
-const mockDateCourse: CourseDetails[] = [
-  {
-    id: "course-1",
-    creatorId: "user-1",
-    creatorDisplayName: "낭만가이드",
-    categorySlug: "date-night",
-    title: "서울 야경 데이트 코스",
-    summary: "N서울타워부터 세빛섬까지, 로맨틱한 서울의 밤을 즐겨보세요.",
-    reviewState: "APPROVED",
-    spots: [
-      {
-        orderNo: 1,
-        title: "N서울타워",
-        description: "서울의 전경을 한눈에 담을 수 있는 로맨틱한 장소",
-        lat: 37.5512, // 위도
-        lng: 126.9882, // 경도
-      },
-      {
-        orderNo: 2,
-        title: "낙산공원",
-        description: "성곽길을 따라 걸으며 감상하는 도심의 야경",
-        lat: 37.5808,
-        lng: 127.0078,
-      },
-      {
-        orderNo: 3,
-        title: "세빛섬",
-        description: "한강 위에서 빛나는 아름다운 인공섬",
-        lat: 37.5119,
-        lng: 126.9956,
-      },
-    ],
-  },
-];
+const ALL_MOCK_COURSES: Course[] = [MOCK_COURSE, MOCK_COURSE_2]; // Combine all mock courses
 
-export default function Home() {
-  // NOTE: Temporarily using mock data. Uncomment the section below to use real API data.
-  const courses = mockDateCourse;
-  const areDetailsLoading = false;
+const HomePage = () => {
+  const router = useRouter();
+  const [activeCourseId, setActiveCourseId] = useState<string | null>(null); // Start with no course selected
+  const [activeSpotIndex, setActiveSpotIndex] = useState<number | null>(null); // State for active spot within the selected course
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false); // State for bottom sheet visibility
 
-  /*
-  // 1. 모든 코스 목록(요약)을 가져옵니다.
-  const { data: coursesData } = useQuery({
-    queryKey: ['courses'],
-    queryFn: () => getCourses(''),
-  });
+  const currentCourse = ALL_MOCK_COURSES.find(
+    (course) => course.id === activeCourseId
+  );
 
-  const courseSummaries = coursesData?.content || [];
+  const activeSpot =
+    activeSpotIndex !== null && currentCourse
+      ? currentCourse.places[activeSpotIndex]
+      : null;
 
-  // 2. 각 코스의 상세 정보를 병렬로 가져옵니다.
-  const courseDetailQueries = useQueries({
-    queries: courseSummaries.map((course: CourseSummary) => ({
-      queryKey: ['course', course.id],
-      queryFn: () => getCourseById(course.id),
-      staleTime: Infinity, // 한 번 받은 데이터는 만료되지 않도록 설정
-    })),
-  });
+  const handleMarkerClick = (place: Place) => {
+    if (!currentCourse) return; // Cannot click marker if no course is selected
+    const index = currentCourse.places.findIndex((p) => p.id === place.id);
+    if (index !== -1) {
+      if (activeSpotIndex === index) {
+        // If the clicked marker is already active, deactivate it
+        setActiveSpotIndex(null);
+      } else {
+        // Otherwise, activate the clicked marker
+        setActiveSpotIndex(index);
+      }
+    }
+  };
 
-  // 모든 상세 정보가 로드될 때까지 기다립니다.
-  const areDetailsLoading = courseDetailQueries.some(query => query.isLoading);
+  // Calculate center of the map
+  const mapCenter = activeSpot
+    ? { lat: activeSpot.lat, lng: activeSpot.lng } // Center on active spot
+    : currentCourse
+    ? {
+        lat:
+          currentCourse.places.reduce((sum, p) => sum + p.lat, 0) /
+          currentCourse.places.length,
+        lng:
+          currentCourse.places.reduce((sum, p) => sum + p.lng, 0) /
+          currentCourse.places.length,
+      } // Center on the average of all places in the current course
+    : { lat: 37.551167, lng: 126.988 }; // Default to Namsan/Seoul if no course selected
 
-  // 성공적으로 로드된 코스 상세 정보만 필터링합니다.
-  const courses: CourseDetails[] = courseDetailQueries
-    .filter(query => query.isSuccess && query.data)
-    .map(query => query.data);
-  */
+  const mapZoom = activeSpot ? 15 : 12; // Zoom in when a spot is active, otherwise default zoom
+
+  const polylinePath = currentCourse
+    ? currentCourse.places.map((place) => ({ lat: place.lat, lng: place.lng }))
+    : [];
 
   return (
-    <div className="relative h-[calc(100vh-65px)] w-full">
-      {areDetailsLoading ? <p>Loading map data...</p> : <Map courses={courses} />}
+    <div className="flex flex-col h-full w-full">
+      {/* 선택된 코스에 대한 동적 제목 및 설명 */}
+      {currentCourse && (
+        <div className="p-4 bg-white shadow-sm z-10">
+          <h1 className="text-xl font-bold">{currentCourse.title}</h1>
+          <p className="text-gray-600 text-sm">{currentCourse.desc}</p>
+        </div>
+      )}
+
+      <div className="flex-grow relative">
+        <MapView
+          center={mapCenter}
+          zoom={mapZoom}
+          markers={currentCourse ? currentCourse.places : []} // 현재 코스의 장소 전달
+          showNumberedMarkers={true}
+          polylinePath={polylinePath}
+          activeMarkerId={activeSpot?.id || null}
+          onMarkerClick={handleMarkerClick}
+        />
+
+        {/* 코스 선택 하단 시트를 여는 버튼 */}
+        <button
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 shadow-lg bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full flex items-center"
+          onClick={() => setIsBottomSheetOpen(true)}
+        >
+          {/* <Menu className="mr-2 h-4 w-4" /> */} {/* Menu 아이콘 제거 */}
+          코스 선택
+        </button>
+
+        {activeSpotIndex !== null && currentCourse && (
+          <SpotDetailSheet
+            spots={currentCourse.places}
+            activeSpotIndex={activeSpotIndex}
+            onSetActiveSpotIndex={setActiveSpotIndex}
+          />
+        )}
+      </div>
+
+      {/* 코스 선택 하단 시트 */}
+      <CourseSelectionBottomSheet
+        courses={ALL_MOCK_COURSES}
+        activeCourseId={activeCourseId}
+        setActiveCourseId={(id) => {
+          setActiveCourseId(id);
+          setActiveSpotIndex(null); // 코스 변경 시 활성 스팟 재설정
+        }}
+        isOpen={isBottomSheetOpen}
+        onClose={() => setIsBottomSheetOpen(false)}
+      />
     </div>
   );
-}
+};
+
+export default HomePage;

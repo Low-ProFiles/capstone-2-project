@@ -18,8 +18,8 @@ export default function Header() {
   return (
     <header className="bg-white border-b sticky top-0 z-20">
       <nav className="container mx-auto flex items-center justify-between p-4 h-16">
-        <Link href="/" className="text-xl font-bold text-blue-600">
-          링코
+        <Link href="/" className="flex items-center">
+          <img src="/images/logo.png" alt="링코 로고" className="h-7 w-auto" />
         </Link>
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
