@@ -9,7 +9,7 @@ const EditProfileForm = () => {
   const router = useRouter();
   const [name, setName] = useState(MOCK_USER.name);
   const [bio, setBio] = useState(MOCK_USER.bio || '');
-  const [avatarUrl, setAvatarUrl] = useState(MOCK_USER.avatarUrl || '/default-avatar.png');
+  const [avatarUrl] = useState(MOCK_USER.avatarUrl || '/default-avatar.png');
 
   const handleSave = () => {
     // In a real app, this would send data to a backend.

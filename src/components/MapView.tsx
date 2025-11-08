@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   Container,
   NaverMap,
@@ -40,8 +40,21 @@ const MapView = ({
   // Removed internal activeInfoWindow state, now controlled by props
   const mapRef = useRef<naver.maps.Map | null>(null); // Use useRef for map instance
 
-  // Removed useEffect that adds a map-wide click listener to close info window.
-  // The InfoWindow's onClose prop should be sufficient.
+  // Effect to handle closing the info window when the map is clicked
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !onInfoWindowClose) return;
+
+    // Add a click listener to the map
+    const listener = navermaps.Event.addListener(map, "click", () => {
+      onInfoWindowClose(); // Call the function passed via props
+    });
+
+    // Cleanup listener on component unmount
+    return () => {
+      navermaps.Event.removeListener(listener);
+    };
+  }, [onInfoWindowClose, navermaps]);
 
   // Effect to update map center and zoom when props change
   useEffect(() => {
@@ -55,7 +68,7 @@ const MapView = ({
       // If only zoom changes, set zoom (morph doesn't have a zoom-only smooth option)
       mapRef.current.setZoom(zoom);
     }
-  }, [center, zoom, mapRef.current, navermaps]);
+  }, [center, zoom, navermaps]);
 
   // Fallback for missing client ID - this conditional rendering must be after hooks
   if (!process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID) {
@@ -194,7 +207,6 @@ const MapView = ({
               </div>
             `}
             pixelOffset={new navermaps.Point(0, 0)} // Set pixelOffset to 0,0 for debugging
-            onClose={() => onInfoWindowClose && onInfoWindowClose()} // Call prop on close
           />
         )}
       </NaverMap>

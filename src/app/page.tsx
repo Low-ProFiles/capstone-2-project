@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MOCK_COURSE, MOCK_COURSE_2, Place, Course } from "@/lib/types";
 import SpotDetailSheet from "@/components/SpotDetailSheet";
@@ -15,7 +14,6 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const ALL_MOCK_COURSES: Course[] = [MOCK_COURSE, MOCK_COURSE_2]; // Combine all mock courses
 
 const HomePage = () => {
-  const router = useRouter();
   const [activeCourseId, setActiveCourseId] = useState<string | null>(null); // Start with no course selected
   const [activeSpotIndex, setActiveSpotIndex] = useState<number | null>(null); // State for active spot within the selected course
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false); // State for bottom sheet visibility

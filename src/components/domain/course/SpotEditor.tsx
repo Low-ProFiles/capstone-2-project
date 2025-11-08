@@ -5,11 +5,11 @@ import { UseFormRegister } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SpotRequest } from "@/types/course";
+import type { SpotReq } from "@/types/course";
 import { CourseFormValues } from "@/types/form";
 
 interface SpotEditorProps {
-  spot: SpotRequest;
+  spot: SpotReq;
   index: number;
   register: UseFormRegister<CourseFormValues>;  onDelete: (index: number) => void;
   onMove: (index: number, direction: "up" | "down") => void;

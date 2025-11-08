@@ -16,8 +16,10 @@ import Link from "next/link";
 
 import { useAuth } from "@/store/auth-provider";
 import { useRouter } from "next/navigation";
+import { FcGoogle } from "react-icons/fc";
+import { RiKakaoTalkFill } from "react-icons/ri";
 
-import { Chrome, MessageCircle } from "lucide-react"; // Using generic icons for now
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -82,18 +84,22 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <a href="http://localhost:8080/oauth2/authorization/google">
-              <Button variant="outline" className="w-full">
-                <Chrome className="mr-2 h-4 w-4" />
-                Google
-              </Button>
-            </a>
-            <a href="http://localhost:8080/oauth2/authorization/kakao">
-              <Button variant="outline" className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-black">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Kakao
-              </Button>
-            </a>
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`}
+              >
+                <div className="flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-black shadow-md">
+                  <FcGoogle className="h-6 w-6" />
+                  <span>Google로 로그인</span>
+                </div>
+              </a>
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/kakao`}
+              >
+                <div className="flex items-center justify-center gap-2 rounded-md bg-[#FEE500] px-4 py-2 text-black shadow-md">
+                  <RiKakaoTalkFill className="h-6 w-6" />
+                  <span>카카오로 로그인</span>
+                </div>
+              </a>
           </div>
 
         </CardContent>

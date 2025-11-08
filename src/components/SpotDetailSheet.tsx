@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { Place } from "@/lib/types";
 
 type SpotDetailSheetProps = {
@@ -72,9 +73,11 @@ const SpotDetailSheet = ({
         {activeSpot.imageUrl && (
           <div className="w-4/10 pr-4 flex-shrink-0">
             {/* 30% width for image */}
-            <img
+            <Image
               src={activeSpot.imageUrl}
               alt={activeSpot.name}
+              width={150}
+              height={150}
               className="w-full h-auto aspect-square object-cover rounded-lg shadow-md"
             />
           </div>

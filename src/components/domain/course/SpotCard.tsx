@@ -1,9 +1,9 @@
 
-import type { SpotRequest } from '@/types/course';
+import type { SpotRes } from '@/types/course';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SpotCardProps {
-  spot: SpotRequest;
+  spot: SpotRes;
 }
 
 const SpotCard = ({ spot }: SpotCardProps) => {

@@ -3,13 +3,13 @@ import { useMutation } from '@tanstack/react-query';
 
 import api from './index'; // Import the axios instance
 
-import type { LoginDto, SignUpDto, TokenDto } from '@/types/auth';
+import type { Login, SignUp, Token } from '@/types/auth';
 
 
 
 // API 호출 함수
 
-export const signup = async (userData: SignUpDto): Promise<string> => {
+export const signup = async (userData: SignUp): Promise<string> => {
 
   const response = await api.post('/auth/signup', userData);
 
@@ -19,7 +19,7 @@ export const signup = async (userData: SignUpDto): Promise<string> => {
 
 
 
-export const login = async (credentials: LoginDto): Promise<TokenDto> => {
+export const login = async (credentials: Login): Promise<Token> => {
 
 
 
@@ -39,7 +39,7 @@ export const login = async (credentials: LoginDto): Promise<TokenDto> => {
 
 export const useSignUp = () => {
 
-  return useMutation<string, Error, SignUpDto>({ mutationFn: signup, });
+  return useMutation<string, Error, SignUp>({ mutationFn: signup, });
 
 };
 
@@ -49,6 +49,6 @@ export const useSignUp = () => {
 
 export const useLogin = () => {
 
-  return useMutation<TokenDto, Error, LoginDto>({ mutationFn: login, });
+  return useMutation<Token, Error, Login>({ mutationFn: login, });
 
 };

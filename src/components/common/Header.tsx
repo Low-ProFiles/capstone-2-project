@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAuth } from "@/store/auth-provider";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,13 @@ export default function Header() {
     <header className="bg-white border-b sticky top-0 z-20">
       <nav className="container mx-auto flex items-center justify-between p-4 h-16">
         <Link href="/" className="flex items-center">
-          <img src="/images/logo.png" alt="링코 로고" className="h-7 w-auto" />
+          <Image
+            src="/images/logo.png"
+            alt="링코 로고"
+            width={100}
+            height={28}
+            className="h-7 w-auto"
+          />
         </Link>
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
