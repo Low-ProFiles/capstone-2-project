@@ -1,14 +1,26 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { login as apiLogin, signup as apiSignup, type LoginDto, type SignUpDto } from '@/lib/api';
+import { useAuthStore } from './auth.store';
+
+// Define a type for the decoded JWT payload
+interface DecodedUser {
+  sub: string; // Subject (usually user ID)
+  email: string;
+  nickname: string;
+  roles: string[];
+  exp: number; // Expiration time
+  iat: number; // Issued at time
+}
 
 // Define types for the auth context
 interface AuthContextType {
   token: string | null;
+  user: DecodedUser | null; // Add user to context type
   isAuthenticated: boolean;
-  login: (credentials: LoginDto) => Promise<void>;
-  signup: (userData: SignUpDto) => Promise<void>;
+  login: (credentials: LoginDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
+  signup: (userData: SignUpDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
   logout: () => void;
   setAuthToken: (newToken: string) => void;
 }
@@ -22,44 +34,43 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [token, setToken] = useState<string | null>(null);
+  const { token, user, setToken, logout: storeLogout } = useAuthStore();
 
-  useEffect(() => {
-    // Try to load the token from localStorage on initial load
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setToken(storedToken);
+  const login = async (credentials: LoginDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
+    try {
+      const data = await apiLogin(credentials);
+      setToken(data.token);
+      onSuccess?.();
+    } catch (error) {
+      console.error('Login failed:', error);
+      onFailure?.(error as Error);
+      throw error; // Re-throw to allow calling component to handle
     }
-  }, []);
-
-  const login = async (credentials: LoginDto) => {
-    const data = await apiLogin(credentials);
-    setToken(data.token);
-    localStorage.setItem('authToken', data.token);
   };
 
-  const signup = async (userData: SignUpDto) => {
-    await apiSignup(userData);
-    // Optional: automatically log in the user after signup
-    // const data = await apiLogin({ email: userData.email, password: userData.password });
-    // setToken(data.token);
-    // localStorage.setItem('authToken', data.token);
+  const signup = async (userData: SignUpDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
+    try {
+      await apiSignup(userData);
+      onSuccess?.();
+    } catch (error) {
+      console.error('Signup failed:', error);
+      onFailure?.(error as Error);
+      throw error; // Re-throw to allow calling component to handle
+    }
   };
 
   const logout = () => {
-    setToken(null);
-    localStorage.removeItem('authToken');
+    storeLogout();
   };
 
   const setAuthToken = (newToken: string) => {
     setToken(newToken);
-    localStorage.setItem('authToken', newToken);
   };
 
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated, login, signup, logout, setAuthToken }}>
+    <AuthContext.Provider value={{ token, user, isAuthenticated, login, signup, logout, setAuthToken }}>
       {children}
     </AuthContext.Provider>
   );
@@ -73,3 +84,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

@@ -1,43 +1,72 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { MOCK_USER } from '@/lib/types';
+import { useAuth } from '@/store/auth-provider';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getUserProfile, updateUserProfile } from '@/lib/api';
 
 const EditProfileForm = () => {
   const router = useRouter();
-  const [name, setName] = useState(MOCK_USER.name);
-  const [bio, setBio] = useState(MOCK_USER.bio || '');
-  const [avatarUrl] = useState(MOCK_USER.avatarUrl || '/default-avatar.png');
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: userProfile, isLoading } = useQuery({
+    queryKey: ['userProfile', token],
+    queryFn: () => {
+      if (!token) throw new Error('No token found');
+      return getUserProfile(token);
+    },
+    enabled: !!token,
+  });
+
+  const [nickname, setNickname] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+
+  useEffect(() => {
+    if (userProfile) {
+      setNickname(userProfile.nickname || '');
+      setBio(userProfile.bio || '');
+      setAvatarUrl(userProfile.avatarUrl || '/default-avatar.png');
+    }
+  }, [userProfile]);
+
+  const mutation = useMutation({
+    mutationFn: (profileData: { nickname: string; bio: string; avatarUrl: string }) => {
+      if (!token) throw new Error('No token found');
+      return updateUserProfile(profileData, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      router.back();
+    },
+    onError: (error) => {
+      alert(`Failed to update profile: ${error.message}`);
+    },
+  });
 
   const handleSave = () => {
-    // In a real app, this would send data to a backend.
-    // For this demo, we just alert.
-    alert('데모용 페이지입니다. 여기서 저장해도 실제 정보는 변경되지 않습니다.\n' +
-          `저장된 정보: \n표시 이름: ${name}\n자기소개: ${bio}`);
-    router.back();
+    mutation.mutate({ nickname, bio, avatarUrl });
   };
 
   const handleCancel = () => {
     router.back();
   };
 
-  // Placeholder for image change functionality
   const handleImageChange = () => {
-    alert('이미지 변경 기능은 데모에서 지원하지 않습니다.');
+    alert('Image change functionality is not implemented yet.');
   };
+
+  if (isLoading) {
+    return <div>Loading form...</div>;
+  }
 
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6 space-y-4">
       <h2 className="text-xl font-bold text-center mb-4">프로필 수정</h2>
 
-      {/* Yellow Warning Banner */}
-      <div className="bg-yellow-100 text-yellow-800 text-sm p-3 rounded-lg text-center">
-        데모용 페이지입니다. 여기서 저장해도 실제 정보는 변경되지 않습니다.
-      </div>
-
-      {/* Avatar Preview */}
       <div className="flex flex-col items-center space-y-2">
         <div className="relative w-24 h-24 rounded-full overflow-hidden">
           <Image
@@ -55,17 +84,16 @@ const EditProfileForm = () => {
         </button>
       </div>
 
-      {/* Input Fields */}
       <div className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
             표시 이름
           </label>
           <input
             type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            id="nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -83,7 +111,6 @@ const EditProfileForm = () => {
         </div>
       </div>
 
-      {/* Footer Buttons */}
       <div className="flex justify-end space-x-3 mt-6">
         <button
           onClick={handleCancel}
@@ -93,9 +120,10 @@ const EditProfileForm = () => {
         </button>
         <button
           onClick={handleSave}
-          className="px-5 py-3 bg-black text-white rounded-full font-semibold shadow-sm"
+          disabled={mutation.isPending}
+          className="px-5 py-3 bg-black text-white rounded-full font-semibold shadow-sm disabled:bg-gray-400"
         >
-          저장
+          {mutation.isPending ? '저장 중...' : '저장'}
         </button>
       </div>
     </div>

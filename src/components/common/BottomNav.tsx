@@ -1,13 +1,14 @@
 'use client';
 
+import { Home, PlusCircle, User, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PlusSquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', icon: Home, label: '홈' },
-  { href: '/new-course', icon: PlusSquare, label: '코스 생성' },
+  { href: '/search', icon: Search, label: '검색' },
+  { href: '/new-course', icon: PlusCircle, label: '코스 생성' },
   { href: '/profile', icon: User, label: '프로필' },
 ];
 

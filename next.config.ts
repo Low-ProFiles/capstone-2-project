@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
+import path from "path"; // Import path module
 
 const nextConfig: NextConfig = {
-  devIndicators: {
-    buildActivity: false, // 빌드 진행 배지 끔
-    appIsrStatus: false,
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: 'via.placeholder.com' }],
   },
+  outputFileTracingRoot: path.join(__dirname, '../../'), // Set project root for file tracing
   async rewrites() {
     return [
       {

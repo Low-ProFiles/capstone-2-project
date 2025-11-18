@@ -1,6 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
-import api from './index';
-
+import { useMutation } from "@tanstack/react-query";
+import api from "./index";
 
 interface OrderItemDto {
   courseId: string;
@@ -20,10 +19,11 @@ interface OrderConfirmation {
   // Add other confirmation details
 }
 
-const placeOrder = async (orderData: PlaceOrderDto): Promise<OrderConfirmation> => {
+const placeOrder = async (
+  orderData: PlaceOrderDto
+): Promise<OrderConfirmation> => {
   // Simulate API call
-  console.log("Placing order with data:", orderData);
-  const response = await api.post('/orders', orderData);
+  const response = await api.post("/orders", orderData);
   return response.data;
 };
 

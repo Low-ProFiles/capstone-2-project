@@ -19,8 +19,6 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { RiKakaoTalkFill } from "react-icons/ri";
 
-
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,13 +26,16 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    try {
-      await login({ email, password });
-      router.push("/"); // Redirect to homepage on successful login
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
-    }
+    await login(
+      { email, password },
+      () => {
+        router.push("/"); // Redirect to homepage on successful login
+      },
+      (error) => {
+        console.error("Login failed:", error);
+        alert(`로그인에 실패했습니다. ${error.message || "이메일과 비밀번호를 확인해주세요."}`);
+      }
+    );
   };
 
   return (
@@ -52,7 +53,7 @@ export default function LoginPage() {
             <Input
               id="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder="email@example.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -84,28 +85,27 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`}
-              >
-                <div className="flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-black shadow-md">
-                  <FcGoogle className="h-6 w-6" />
-                  <span>Google로 로그인</span>
-                </div>
-              </a>
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/kakao`}
-              >
-                <div className="flex items-center justify-center gap-2 rounded-md bg-[#FEE500] px-4 py-2 text-black shadow-md">
-                  <RiKakaoTalkFill className="h-6 w-6" />
-                  <span>카카오로 로그인</span>
-                </div>
-              </a>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`}
+            >
+              <div className="flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-black shadow-md">
+                <FcGoogle className="h-6 w-6" />
+                <span>Google</span>
+              </div>
+            </a>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/kakao`}
+            >
+              <div className="flex items-center justify-center gap-2 rounded-md bg-[#FEE500] px-4 py-2 text-black shadow-md">
+                <RiKakaoTalkFill className="h-6 w-6" />
+                <span>카카오</span>
+              </div>
+            </a>
           </div>
-
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <div className="text-center text-sm">
-            계정이 없으신가요.?{" "}
+            계정이 없으신가요?{" "}
             <Link href="/signup" className="underline">
               회원가입
             </Link>

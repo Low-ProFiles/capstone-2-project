@@ -1,11 +1,10 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Container as MapDiv, NaverMap, Marker, useNavermaps } from 'react-naver-maps';
+import ImageUpload from '@/components/common/ImageUpload'; // Import ImageUpload
 
 import type { SpotReq } from '@/types/course';
 
@@ -14,24 +13,41 @@ interface AddSpotModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (spot: Omit<SpotReq, 'orderNo'>) => void; // A more specific type should be used
-  orderNo: number;
+  orderNo: number; // This is for new spots, or the order of the spot being edited
+  editingSpot?: SpotReq | null; // New prop for editing
 }
 
-export default function AddSpotModal({ isOpen, onClose, onSave }: AddSpotModalProps) {
+export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: AddSpotModalProps) {
   const navermaps = useNavermaps();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState(0);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [spotImageUrl, setSpotImageUrl] = useState<string | undefined>(undefined);
   const [map, setMap] = useState<naver.maps.Map | null>(null);
 
   useEffect(() => {
-    // Reset form when modal opens
+    // Reset form when modal opens or editingSpot changes
     if (isOpen) {
-      setTitle('');
-      setDescription('');
-      setPosition(null);
+      if (editingSpot) {
+        setTitle(editingSpot.title);
+        setDescription(editingSpot.description || '');
+        setPrice(editingSpot.price || 0);
+        if (editingSpot.lat && editingSpot.lng) {
+          setPosition({ lat: editingSpot.lat, lng: editingSpot.lng });
+        } else {
+          setPosition(null);
+        }
+        setSpotImageUrl(editingSpot.images && editingSpot.images.length > 0 ? editingSpot.images[0] : undefined);
+      } else {
+        setTitle('');
+        setDescription('');
+        setPrice(0);
+        setPosition(null);
+        setSpotImageUrl(undefined);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, editingSpot]);
 
   const handleMapClick = useCallback((e: naver.maps.PointerEvent) => {
     const { coord } = e;
@@ -56,8 +72,10 @@ export default function AddSpotModal({ isOpen, onClose, onSave }: AddSpotModalPr
     onSave({
       title,
       description,
+      price,
       lat: position.lat,
       lng: position.lng,
+      images: spotImageUrl ? [spotImageUrl] : [],
     });
     onClose();
   };
@@ -66,13 +84,13 @@ export default function AddSpotModal({ isOpen, onClose, onSave }: AddSpotModalPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg">
         <DialogHeader>
-          <DialogTitle>새로운 장소 추가</DialogTitle>
+          <DialogTitle>{editingSpot ? '장소 수정' : '새로운 장소 추가'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <MapDiv className="h-64 w-full">
             <NaverMap
               ref={setMap}
-              defaultCenter={new navermaps.LatLng(37.5665, 126.9780)} // Default to Seoul
+              defaultCenter={position ? new navermaps.LatLng(position.lat, position.lng) : new navermaps.LatLng(37.5665, 126.9780)} // Default to Seoul or editing spot's position
               defaultZoom={15}
             >
               {position && <Marker position={position} />}
@@ -86,6 +104,15 @@ export default function AddSpotModal({ isOpen, onClose, onSave }: AddSpotModalPr
             <Label htmlFor="spot-description">장소 설명</Label>
             <Input id="spot-description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="spot-price">예상 비용 (원)</Label>
+            <Input id="spot-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+          </div>
+          <ImageUpload
+            onUploadSuccess={setSpotImageUrl}
+            currentImageUrl={spotImageUrl}
+            label="장소 이미지"
+          />
           {position && (
             <div className="text-sm text-gray-500">
               선택된 위치: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}

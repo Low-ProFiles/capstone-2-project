@@ -16,22 +16,28 @@ import Link from "next/link";
 
 import { useAuth } from "@/store/auth-provider";
 import { useRouter } from "next/navigation";
+import { login } from "@/lib/api";
 
 export default function SignupPage() {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signup } = useAuth();
+  const { signup, login } = useAuth();
   const router = useRouter();
 
-  const handleSignup = async () => {
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       await signup({ nickname, email, password });
-      alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
-      router.push("/login");
-    } catch (error) {
-      console.error("Signup failed:", error);
-      alert("회원가입에 실패했습니다. 이미 사용 중인 이메일이거나, 입력 내용을 확인해주세요.");
+      // After signup, attempt to log in
+      await login({ email, password }); // Use the login function from useAuth
+      router.push("/"); // Redirect to home
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message || "회원가입 또는 로그인에 실패했습니다.");
+      } else {
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -40,12 +46,10 @@ export default function SignupPage() {
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">회원가입</CardTitle>
-          <CardDescription>
-            계정을 만들려면 정보를 입력하세요.
-          </CardDescription>
+          <CardDescription>계정을 만들려면 정보를 입력하세요.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nickname">닉네임</Label>
               <Input
@@ -62,7 +66,7 @@ export default function SignupPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="email@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -78,12 +82,12 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-          </div>
+            <Button type="submit" className="w-full">
+              회원가입
+            </Button>
+          </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleSignup}>
-            회원가입
-          </Button>
           <div className="text-center text-sm">
             이미 계정이 있으신가요?{" "}
             <Link href="/login" className="underline">

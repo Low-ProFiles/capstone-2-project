@@ -1,13 +1,22 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { User } from '@/types';
+import { jwtDecode } from 'jwt-decode';
+
+// This should be the same as in AuthProvider
+interface DecodedUser {
+  sub: string;
+  email: string;
+  nickname: string;
+  roles: string[];
+  exp: number;
+  iat: number;
+}
 
 interface AuthState {
   token: string | null;
-  user: User | null;
+  user: DecodedUser | null;
   setToken: (token: string) => void;
-  setUser: (user: User) => void;
   logout: () => void;
 }
 
@@ -16,8 +25,15 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
-      setToken: (token) => set({ token }),
-      setUser: (user) => set({ user }),
+      setToken: (token) => {
+        try {
+          const decoded: DecodedUser = jwtDecode(token);
+          set({ token, user: decoded });
+        } catch (error) {
+          console.error('Failed to decode token:', error);
+          set({ token: null, user: null });
+        }
+      },
       logout: () => set({ token: null, user: null }),
     }),
     {

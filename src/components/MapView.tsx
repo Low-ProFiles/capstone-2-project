@@ -3,10 +3,9 @@ import {
   Container,
   NaverMap,
   Marker,
-  InfoWindow,
   Polyline,
   useNavermaps,
-} from "react-naver-maps"; // Import Polyline
+} from "react-naver-maps"; // Removed InfoWindow import
 import { Place } from "@/lib/types";
 
 type MapViewProps = {
@@ -16,45 +15,54 @@ type MapViewProps = {
   onMarkerClick?: (place: Place) => void;
   onMarkerDragEnd?: (lat: number, lng: number) => void;
   draggableMarkers?: boolean;
-  showNumberedMarkers?: boolean; // New prop
-  polylinePath?: { lat: number; lng: number }[]; // New prop
-  activeMarkerId?: string | null; // New prop for highlighting active marker
-  activeInfoWindow?: Place | null; // New prop for controlling info window
-  onInfoWindowClose?: () => void; // New prop for closing info window
+  polylinePath?: { lat: number; lng: number }[];
+  onInfoWindowClose?: () => void;
+  onBoundsChanged?: (bounds: naver.maps.Bounds) => void;
 };
 
 const MapView = ({
   center = { lat: 37.5665, lng: 126.978 }, // Default to Seoul City Hall
   zoom = 10,
-  markers = [],
-  onMarkerClick,
-  onMarkerDragEnd,
-  draggableMarkers = false,
-  showNumberedMarkers = false, // Default to false
-  polylinePath = [], // Default to empty array
-  activeMarkerId = null, // Default to null
-  activeInfoWindow = null, // Default to null
+  markers = [], // Re-added
+  onMarkerClick, // Re-added
+  onMarkerDragEnd, // Re-added
+  draggableMarkers = false, // Re-added
+  polylinePath = [],
   onInfoWindowClose,
+  onBoundsChanged,
 }: MapViewProps) => {
   const navermaps = useNavermaps();
-  // Removed internal activeInfoWindow state, now controlled by props
   const mapRef = useRef<naver.maps.Map | null>(null); // Use useRef for map instance
 
-  // Effect to handle closing the info window when the map is clicked
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !onInfoWindowClose) return;
+    if (!map) return;
 
-    // Add a click listener to the map
-    const listener = navermaps.Event.addListener(map, "click", () => {
-      onInfoWindowClose(); // Call the function passed via props
-    });
+    const listeners: naver.maps.MapEventListener[] = [];
 
-    // Cleanup listener on component unmount
+    if (onInfoWindowClose) {
+      listeners.push(
+        navermaps.Event.addListener(map, "click", () => {
+          onInfoWindowClose();
+        })
+      );
+    }
+
+    if (onBoundsChanged) {
+      listeners.push(
+        navermaps.Event.addListener(map, "idle", () => {
+          onBoundsChanged(map.getBounds());
+        })
+      );
+      // Initial call
+      onBoundsChanged(map.getBounds());
+    }
+
+    // Cleanup listeners on component unmount
     return () => {
-      navermaps.Event.removeListener(listener);
+      listeners.forEach((listener) => navermaps.Event.removeListener(listener));
     };
-  }, [onInfoWindowClose, navermaps]);
+  }, [onInfoWindowClose, onBoundsChanged, navermaps]);
 
   // Effect to update map center and zoom when props change
   useEffect(() => {
@@ -102,113 +110,35 @@ const MapView = ({
           />
         )}
 
-        <>
-          {markers.map((place, index) => {
-            const isActive = activeMarkerId === place.id;
+        {markers.map((place) => {
+          // const isActive = activeMarkerId === place.id; // isActive is no longer used
+          const markerContent =
+            '<div style="width:22px;height:22px;background-color:red;border:1px solid black;text-align:center;line-height:22px;">' +
+            place.name +
+            "</div>";
 
-            const markerContent = showNumberedMarkers
-              ? `<div style="\
-
-                      background-color: ${isActive ? "#FFD700" : "#4285F4"};\
-
-                      color: ${isActive ? "black" : "white"};\
-
-                      font-weight: bold;\
-
-                      width: 28px;\
-
-                      height: 28px;\
-
-                      display: flex;\
-
-                      align-items: center;\
-
-                      justify-content: center;\
-
-                      border-radius: 50%;\
-
-                      border: 2px solid white;\
-
-                      box-shadow: 0 2px 4px rgba(0,0,0,0.3);\
-
-                      transform: ${isActive ? "scale(1.2)" : "scale(1)"};\
-
-                      transition: transform 0.2s ease-in-out;\
-
-                    ">${index + 1}</div>`
-              : `<div style="\
-
-                      background-color: ${isActive ? "#FFD700" : "#4285F4"};\
-
-                      color: ${isActive ? "black" : "white"};\
-
-                      width: 24px;\
-
-                      height: 24px;\
-
-                      line-height: 24px;\
-
-                      text-align: center;\
-
-                      border-radius: 50%;\
-
-                      border: 2px solid white;\
-
-                      box-shadow: 0 2px 4px rgba(0,0,0,0.3);\
-
-                      transform: ${isActive ? "scale(1.2)" : "scale(1)"};\
-
-                      transition: transform 0.2s ease-in-out;\
-
-                    "></div>`; // Default marker for non-numbered
-
-            return (
-              <Marker
-                key={place.id}
-                position={new navermaps.LatLng(place.lat, place.lng)}
-                draggable={draggableMarkers}
-                onDragend={(e: naver.maps.PointerEvent) => {
-                  if (onMarkerDragEnd) {
-                    onMarkerDragEnd(e.coord.y, e.coord.x);
-                  }
-                }}
-                onClick={() => {
-                  if (onMarkerClick) {
-                    onMarkerClick(place);
-                  }
-                  // Removed internal setActiveInfoWindow, now controlled by prop
-                }}
-                icon={{
-                  content: markerContent,
-
-                  anchor: new navermaps.Point(14, 14), // Adjust anchor for larger active marker
-                }}
-              />
-            );
-          })}
-        </>
-
-        {activeInfoWindow && (
-          <InfoWindow
-            position={
-              new navermaps.LatLng(activeInfoWindow.lat, activeInfoWindow.lng)
-            }
-            content={`
-              <div style="padding: 10px; min-width: 150px; max-width: 250px; text-align: center;">
-                <h4 style="margin: 0 0 5px 0; font-size: 16px; font-weight: bold;">${
-                  activeInfoWindow.name
-                }</h4>
-                ${
-                  activeInfoWindow.desc
-                    ? `<p style="margin: 0; font-size: 12px; color: #555;">${activeInfoWindow.desc}</p>`
-                    : ""
+          return (
+            <Marker
+              key={place.id} // Re-added key
+              position={new navermaps.LatLng(place.lat, place.lng)}
+              draggable={draggableMarkers}
+              onDragend={(e: naver.maps.PointerEvent) => {
+                if (onMarkerDragEnd) {
+                  onMarkerDragEnd(e.coord.y, e.coord.x);
                 }
-                <button id="info-window-button" style="margin-top: 10px; padding: 5px 10px; background-color: #4285F4; color: white; border: none; border-radius: 5px; cursor: pointer;">코스 보기</button>
-              </div>
-            `}
-            pixelOffset={new navermaps.Point(0, 0)} // Set pixelOffset to 0,0 for debugging
-          />
-        )}
+              }}
+              onClick={() => {
+                if (onMarkerClick) {
+                  onMarkerClick(place);
+                }
+              }}
+              icon={{
+                content: markerContent,
+                anchor: new navermaps.Point(markerContent.length * 3, 20), // Adjusted anchor for text label
+              }}
+            />
+          );
+        })}
       </NaverMap>
     </Container>
   );

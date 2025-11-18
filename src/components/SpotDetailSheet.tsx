@@ -58,7 +58,7 @@ const SpotDetailSheet = ({
   return (
     <div
       ref={sheetRef}
-      className="fixed bottom-0 left-0 w-full bg-white rounded-t-2xl shadow-lg z-20 p-4 transition-all duration-300 ease-out flex flex-col" // Added flex flex-col
+      className="fixed bottom-0 left-0 w-full bg-white rounded-t-2xl shadow-lg z-20 p-4 transition-all duration-300 ease-out flex flex-col min-h-[4rem]" // Added min-h-[4rem]
       style={{ height: `${sheetHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -82,7 +82,7 @@ const SpotDetailSheet = ({
             />
           </div>
         )}
-        <div className="w-6/10 flex flex-col justify-center">
+        <div className="w-6/10 flex flex-col">
           {" "}
           {/* 70% width for text, vertically split */}
           <h3 className="text-xl font-bold mb-1">{activeSpot.name}</h3>

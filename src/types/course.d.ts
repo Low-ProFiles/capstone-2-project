@@ -37,6 +37,8 @@ export interface CourseSummary {
   likeCount?: number;
   purchaseCount?: number;
   reviewState: ReviewState;
+  lat?: number;
+  lng?: number;
 }
 
 export interface SpotRes {
