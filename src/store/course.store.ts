@@ -47,7 +47,7 @@ export const useCourseStore = create<CourseState>((set) => ({
         last: true,
         empty: (courses || []).length === 0,
       };
-      set((state) => {
+      set(() => {
         return {
           courses: page.content || [],
           pagination: {

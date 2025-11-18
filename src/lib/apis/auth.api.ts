@@ -25,10 +25,10 @@ const login = async (credentials: Login): Promise<Token> => {
 export const useSignUp = () => {
   return useMutation<string, Error, SignUp>({
     mutationFn: signup,
-    onSuccess: (data) => {
+    onSuccess: () => {
       window.location.href = "/login";
     },
-    onError: (error) => {
+    onError: () => {
       // 회원가입 실패 시 처리
       // console.error('회원가입 실패:', error.message); // Removed console.error
       // alert(`회원가입에 실패했습니다: ${error.message}`); // Removed alert
@@ -44,7 +44,7 @@ export const useLogin = () => {
       useAuthStore.getState().setToken(data.token);
       window.location.href = "/";
     },
-    onError: (error) => {
+    onError: () => {
       // 로그인 실패 시 처리
       // console.error('로그인 실패:', error.message); // Removed console.error
       // alert(`로그인에 실패했습니다: ${error.message}`); // Removed alert

@@ -3,13 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import { getCourses, getCategories, CategoryDto, CourseSummary } from '@/lib/api';
-import { REGIONS, Region } from '@/constants/regions';
+import { REGIONS } from '@/constants/regions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Search } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SearchPage() {
   const [q, setQ] = useState('');
@@ -113,7 +114,7 @@ export default function SearchPage() {
                   <a className="block">
                     <Card className="h-full hover:shadow-lg transition-shadow">
                       <CardHeader>
-                        {course.coverImageUrl && <img src={course.coverImageUrl} alt={course.title} className="w-full h-32 object-cover rounded-t-lg" />}
+                        {course.coverImageUrl && <div className="relative w-full h-32"><Image src={course.coverImageUrl} alt={course.title} layout="fill" objectFit="cover" className="rounded-t-lg" /></div>}
                         <CardTitle className="mt-2">{course.title}</CardTitle>
                       </CardHeader>
                       <CardContent>

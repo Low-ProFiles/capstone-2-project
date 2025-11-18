@@ -16,7 +16,6 @@ import Link from "next/link";
 
 import { useAuth } from "@/store/auth-provider";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/api";
 
 export default function SignupPage() {
   const [nickname, setNickname] = useState("");
