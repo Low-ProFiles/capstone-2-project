@@ -1,5 +1,3 @@
-const API_BASE_URL = "";
-
 import type { CourseSummary, SpotReq } from "@/types/course";
 export type { CourseSummary };
 
@@ -45,19 +43,19 @@ export interface TokenDto {
 }
 
 export const signup = (userData: SignUpDto) =>
-  apiFetch(`${API_BASE_URL}/api/auth/signup`, {
+  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
     method: "POST",
     body: JSON.stringify(userData),
   });
 
 export const login = (credentials: LoginDto): Promise<TokenDto> =>
-  apiFetch(`${API_BASE_URL}/api/auth/login`, {
+  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
     method: "POST",
     body: JSON.stringify(credentials),
   });
 
 export const setNickname = (nickname: string, token: string): Promise<void> =>
-  apiFetch(`${API_BASE_URL}/auth/nickname`, {
+  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/nickname`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -78,7 +76,7 @@ export interface CourseCreateDto {
 }
 
 export const createCourse = (courseData: CourseCreateDto, token: string) => {
-  return apiFetch(`${API_BASE_URL}/api/courses`, {
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -105,25 +103,31 @@ export const updateCourse = (
   courseData: CourseUpdateDto,
   token: string
 ): Promise<void> => {
-  return apiFetch(`${API_BASE_URL}/api/courses/${courseId}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(courseData),
-  });
+  return apiFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(courseData),
+    }
+  );
 };
 
 export const deleteCourse = (
   courseId: string,
   token: string
 ): Promise<void> => {
-  return apiFetch(`${API_BASE_URL}/api/courses/${courseId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return apiFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };
 
 export interface GetCoursesParams {
@@ -133,21 +137,25 @@ export interface GetCoursesParams {
   maxCost?: number;
 }
 
-export const getCourses = (params: GetCoursesParams = {}): Promise<CourseSummary[]> => {
+export const getCourses = (
+  params: GetCoursesParams = {}
+): Promise<CourseSummary[]> => {
   const query = new URLSearchParams();
-  if (params.q) query.append('q', params.q);
-  if (params.categoryId) query.append('categoryId', params.categoryId);
-  if (params.region) query.append('region', params.region);
-  if (params.maxCost) query.append('maxCost', params.maxCost.toString());
+  if (params.q) query.append("q", params.q);
+  if (params.categoryId) query.append("categoryId", params.categoryId);
+  if (params.region) query.append("region", params.region);
+  if (params.maxCost) query.append("maxCost", params.maxCost.toString());
 
   const queryString = query.toString();
-  const url = `${API_BASE_URL}/api/courses${queryString ? `?${queryString}` : ''}`;
-  
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/api/courses${
+    queryString ? `?${queryString}` : ""
+  }`;
+
   return apiFetch(url);
 };
 
 export const getCourseById = (id: string) => {
-  return apiFetch(`${API_BASE_URL}/api/courses/${id}`);
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`);
 };
 
 // --- Like --- //
@@ -162,13 +170,16 @@ export const toggleLike = (
   courseId: string,
   token: string
 ): Promise<LikeDto> => {
-  return apiFetch(`${API_BASE_URL}/api/courses/${courseId}/likes/toggle`, {
-    method: "POST",
+  return apiFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/likes/toggle`,
+    {
+      method: "POST",
 
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };
 
 // --- Recommendation --- //
@@ -184,7 +195,9 @@ export interface RecommendationDto {
 export const getCourseRecommendations = (
   courseId: string
 ): Promise<RecommendationDto> => {
-  return apiFetch(`${API_BASE_URL}/api/courses/${courseId}/recommendations`);
+  return apiFetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/recommendations`
+  );
 };
 
 // --- Category --- //
@@ -198,7 +211,7 @@ export interface CategoryDto {
 }
 
 export const getCategories = (): Promise<CategoryDto[]> => {
-  return apiFetch(`${API_BASE_URL}/api/categories`);
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`);
 };
 
 // --- Profile --- //
@@ -220,7 +233,7 @@ export interface ProfileUpdateDto {
 }
 
 export const getUserProfile = (token: string): Promise<UserProfileDto> => {
-  return apiFetch(`${API_BASE_URL}/api/users/me`, {
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -231,8 +244,8 @@ export const updateUserProfile = (
   profileData: ProfileUpdateDto,
   token: string
 ): Promise<UserProfileDto> => {
-  return apiFetch(`${API_BASE_URL}/api/users/me`, {
-    method: 'PATCH',
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+    method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -256,7 +269,7 @@ export const uploadFile = (
 
   // 'Content-Type': 'multipart/form-data' - DO NOT SET THIS HEADER, BROWSER DOES IT AUTOMATICALLY
 
-  return apiFetch(`${API_BASE_URL}/api/files/upload`, {
+  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/upload`, {
     method: "POST",
 
     headers: headers, // Pass the explicitly constructed headers

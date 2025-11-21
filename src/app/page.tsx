@@ -24,7 +24,7 @@ const HomePage = () => {
     null
   );
 
-  const [mapCenter, setMapCenter] = useState({ lat: 37.22800, lng: 127.18654 });
+  const [mapCenter, setMapCenter] = useState({ lat: 37.228, lng: 127.18654 });
 
   const [mapRerenderKey, setMapRerenderKey] = useState(0);
 
@@ -117,7 +117,7 @@ const HomePage = () => {
         <MapView
           key={mapRerenderKey}
           center={mapCenter}
-          zoom={15}
+          zoom={16}
           markers={courseMarkers}
           onMarkerClick={handleMarkerClick}
           onBoundsChanged={handleBoundsChanged}
