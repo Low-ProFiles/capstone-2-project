@@ -35,7 +35,7 @@ const HomePage = () => {
   }, [fetchCourses, selectedCategoryId]);
 
   const displayCourses = coursesPage?.content;
-  
+
   const courseMarkers: Place[] = useMemo(() => {
     return (displayCourses || [])
 
