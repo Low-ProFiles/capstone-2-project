@@ -22,6 +22,7 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(0);
+  const [stayMinutes, setStayMinutes] = useState(0);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [spotImageUrl, setSpotImageUrl] = useState<string | undefined>(undefined);
   const [map, setMap] = useState<naver.maps.Map | null>(null);
@@ -33,6 +34,7 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
         setTitle(editingSpot.title);
         setDescription(editingSpot.description || '');
         setPrice(editingSpot.price || 0);
+        setStayMinutes(editingSpot.stayMinutes || 0);
         if (editingSpot.lat && editingSpot.lng) {
           setPosition({ lat: editingSpot.lat, lng: editingSpot.lng });
         } else {
@@ -73,6 +75,7 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
       title,
       description,
       price,
+      stayMinutes,
       lat: position.lat,
       lng: position.lng,
       images: spotImageUrl ? [spotImageUrl] : [],
@@ -107,6 +110,10 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
           <div className="space-y-2">
             <Label htmlFor="spot-price">예상 비용 (원)</Label>
             <Input id="spot-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="spot-stay-minutes">예상 체류 시간 (분)</Label>
+            <Input id="spot-stay-minutes" type="number" value={stayMinutes} onChange={(e) => setStayMinutes(Number(e.target.value))} />
           </div>
           <ImageUpload
             onUploadSuccess={setSpotImageUrl}

@@ -1,5 +1,18 @@
-import type { CourseSummary, SpotReq } from "@/types/course";
-export type { CourseSummary };
+import type { 
+  SignUp,
+  Login,
+  Token,
+  CourseSummary, 
+  CourseDetails,
+  CreateCourseReq,
+  UpdateCourseReq,
+  Category,
+  LikeToggleRes,
+  FileUploadRes,
+  UserProfileDto,
+  ProfileUpdateDto,
+  Page,
+} from "@/types";
 
 // Generic fetch function to handle common headers and errors
 export const apiFetch = async (url: string, options: RequestInit = {}) => {
@@ -8,7 +21,7 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(process.env.NEXT_PUBLIC_API_URL + url, { ...options, headers });
 
   if (!response.ok) {
     let errorData;
@@ -20,7 +33,6 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     throw new Error(errorData.message || "API request failed");
   }
 
-  // Handle cases with no content
   if (response.status === 204) {
     return null;
   }
@@ -29,54 +41,30 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
 };
 
 // --- Auth --- //
-export interface SignUpDto {
-  nickname: string;
-  email: string;
-  password: string;
-}
-export interface LoginDto {
-  email: string;
-  password: string;
-}
-export interface TokenDto {
-  token: string;
-}
-
-export const signup = (userData: SignUpDto) =>
-  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
+export const signup = (userData: SignUp) =>
+  apiFetch(`/api/auth/signup`, {
     method: "POST",
     body: JSON.stringify(userData),
   });
 
-export const login = (credentials: LoginDto): Promise<TokenDto> =>
-  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+export const login = (credentials: Login): Promise<Token> =>
+  apiFetch(`/api/auth/login`, {
     method: "POST",
     body: JSON.stringify(credentials),
   });
 
 export const setNickname = (nickname: string, token: string): Promise<void> =>
-  apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/nickname`, {
+  apiFetch(`/auth/nickname`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ nickname }),
   });
-
+  
 // --- Course --- //
-export interface CourseCreateDto {
-  title: string;
-  summary: string;
-  categoryId: string;
-  regionCode: string;
-  regionName: string;
-  estimatedCost: number;
-  coverImageUrl?: string;
-  spots: SpotReq[];
-}
-
-export const createCourse = (courseData: CourseCreateDto, token: string) => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses`, {
+export const createCourse = (courseData: CreateCourseReq, token: string): Promise<CourseDetails> => {
+  return apiFetch(`/api/courses`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -85,26 +73,13 @@ export const createCourse = (courseData: CourseCreateDto, token: string) => {
   });
 };
 
-export interface CourseUpdateDto {
-  title?: string;
-  summary?: string;
-  coverImageUrl?: string;
-  spots?: SpotReq[];
-  categoryId?: string;
-  regionCode?: string;
-  regionName?: string;
-  durationMinutes?: number;
-  estimatedCost?: number;
-  tags?: string[];
-}
-
 export const updateCourse = (
   courseId: string,
-  courseData: CourseUpdateDto,
+  courseData: UpdateCourseReq,
   token: string
 ): Promise<void> => {
   return apiFetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}`,
+    `/api/courses/${courseId}`,
     {
       method: "PUT",
       headers: {
@@ -120,7 +95,7 @@ export const deleteCourse = (
   token: string
 ): Promise<void> => {
   return apiFetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}`,
+    `/api/courses/${courseId}`,
     {
       method: "DELETE",
       headers: {
@@ -135,46 +110,54 @@ export interface GetCoursesParams {
   categoryId?: string;
   region?: string;
   maxCost?: number;
+  sortType?: string;
+  page?: number;
+  size?: number;
 }
 
 export const getCourses = (
   params: GetCoursesParams = {}
-): Promise<CourseSummary[]> => {
+): Promise<Page<CourseSummary>> => {
   const query = new URLSearchParams();
-  if (params.q) query.append("q", params.q);
-  if (params.categoryId) query.append("categoryId", params.categoryId);
-  if (params.region) query.append("region", params.region);
-  if (params.maxCost) query.append("maxCost", params.maxCost.toString());
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      query.append(key, String(value));
+    }
+  });
 
   const queryString = query.toString();
-  const url = `${process.env.NEXT_PUBLIC_API_URL}/api/courses${
-    queryString ? `?${queryString}` : ""
-  }`;
+  const url = `/api/courses${queryString ? `?${queryString}` : ""}`;
 
   return apiFetch(url);
 };
 
-export const getCourseById = (id: string) => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/courses/${id}`);
+export const getCourseById = (id: string): Promise<CourseDetails> => {
+  return apiFetch(`/api/courses/${id}`);
 };
 
-// --- Like --- //
 
-export interface LikeDto {
-  liked: boolean;
-
-  likeCount: number;
+export interface RecommendationDto {
+  relatedByLikes: CourseSummary[];
+  sameCategory: CourseSummary[];
+  sameRegion: CourseSummary[];
 }
 
+export const getCourseRecommendations = (
+  courseId: string
+): Promise<RecommendationDto> => {
+  return apiFetch(`/api/courses/${courseId}/recommendations`);
+};
+
+
+// --- Like --- //
 export const toggleLike = (
   courseId: string,
   token: string
-): Promise<LikeDto> => {
+): Promise<LikeToggleRes> => {
   return apiFetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/likes/toggle`,
+    `/api/courses/${courseId}/likes/toggle`,
     {
       method: "POST",
-
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -182,58 +165,14 @@ export const toggleLike = (
   );
 };
 
-// --- Recommendation --- //
-
-export interface RecommendationDto {
-  relatedByLikes: CourseSummary[];
-
-  sameCategory: CourseSummary[];
-
-  sameRegion: CourseSummary[];
-}
-
-export const getCourseRecommendations = (
-  courseId: string
-): Promise<RecommendationDto> => {
-  return apiFetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/courses/${courseId}/recommendations`
-  );
-};
-
 // --- Category --- //
-
-export interface CategoryDto {
-  id: string;
-
-  name: string;
-
-  slug: string;
-}
-
-export const getCategories = (): Promise<CategoryDto[]> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/categories`);
+export const getCategories = (): Promise<Category[]> => {
+  return apiFetch(`/api/categories`);
 };
 
 // --- Profile --- //
-
-export interface UserProfileDto {
-  id: string;
-  email: string;
-  nickname: string;
-  bio?: string;
-  avatarUrl?: string;
-  courseCount: number;
-  likeCount: number;
-}
-
-export interface ProfileUpdateDto {
-  nickname?: string;
-  bio?: string;
-  avatarUrl?: string;
-}
-
 export const getUserProfile = (token: string): Promise<UserProfileDto> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+  return apiFetch(`/api/users/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -244,7 +183,7 @@ export const updateUserProfile = (
   profileData: ProfileUpdateDto,
   token: string
 ): Promise<UserProfileDto> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+  return apiFetch(`/api/users/me`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -254,26 +193,15 @@ export const updateUserProfile = (
 };
 
 // --- File Upload --- //
-
-export interface FileUploadResponse {
-  url: string;
-}
-
 export const uploadFile = (
   formData: FormData,
   token: string
-): Promise<FileUploadResponse> => {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  // 'Content-Type': 'multipart/form-data' - DO NOT SET THIS HEADER, BROWSER DOES IT AUTOMATICALLY
-
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/files/upload`, {
+): Promise<FileUploadRes> => {
+  return apiFetch(`/api/files/upload`, {
     method: "POST",
-
-    headers: headers, // Pass the explicitly constructed headers
-
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: formData,
   });
 };

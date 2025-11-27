@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 const HomePage = () => {
-  const { courses, error, loading, fetchCourses, fetchCourseDetails } =
+  const { coursesPage, error, loading, fetchCourses, fetchCourseDetails } =
     useCourseStore();
 
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -34,8 +34,8 @@ const HomePage = () => {
     fetchCourses({ categoryId: selectedCategoryId || undefined });
   }, [fetchCourses, selectedCategoryId]);
 
-  const displayCourses = courses;
-
+  const displayCourses = coursesPage?.content;
+  
   const courseMarkers: Place[] = useMemo(() => {
     return (displayCourses || [])
 
@@ -46,7 +46,7 @@ const HomePage = () => {
 
         name: course.title,
 
-        desc: course.summary,
+        desc: course.description,
 
         lat: course.lat!,
 

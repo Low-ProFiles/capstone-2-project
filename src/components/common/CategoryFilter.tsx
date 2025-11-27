@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getCategories, CategoryDto } from '@/lib/api';
+import { getCategories } from '@/lib/api';
+import type { Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +13,7 @@ interface CategoryFilterProps {
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({ onSelectCategory, selectedCategoryId }) => {
-  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

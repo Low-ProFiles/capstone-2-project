@@ -5,65 +5,27 @@ import { getCourses, getCourseById, GetCoursesParams } from "@/lib/api"; // Reve
 import type { Page } from "@/types/common";
 
 interface CourseState {
-  courses: CourseSummary[];
+  coursesPage: Page<CourseSummary> | null;
   courseDetails: CourseDetails | null;
   loading: boolean;
   error: string | null;
-  pagination: {
-    page: number;
-    size: number;
-    totalPages: number;
-    totalElements: number;
-  };
   fetchCourses: (params?: GetCoursesParams) => Promise<void>;
   fetchCourseDetails: (id: string) => Promise<void>;
   clearCourseDetails: () => void;
 }
 
 export const useCourseStore = create<CourseState>((set) => ({
-  courses: [],
+  coursesPage: null,
   courseDetails: null,
   loading: false,
   error: null,
-  pagination: {
-    page: 0,
-    size: 10,
-    totalPages: 0,
-    totalElements: 0,
-  },
   fetchCourses: async (params = {}) => {
     set({ loading: true, error: null });
-
     try {
-      // The API doesn't support Page yet, so we'll mock it
-      const courses: CourseSummary[] = await getCourses(params);
-      const page: Page<CourseSummary> = {
-        content: courses || [],
-        totalPages: 1,
-        totalElements: (courses || []).length,
-        size: 10,
-        number: 0,
-        first: true,
-        last: true,
-        empty: (courses || []).length === 0,
-      };
-      set(() => {
-        return {
-          courses: page.content || [],
-          pagination: {
-            page: page.number,
-            size: page.size,
-            totalPages: page.totalPages,
-            totalElements: page.totalElements,
-          },
-          loading: false,
-        };
-      });
+      const page = await getCourses(params);
+      set({ coursesPage: page, loading: false });
     } catch (err: unknown) {
-      set(() => {
-        console.error("fetchCourses: Error fetching:", (err as Error).message);
-        return { error: (err as Error).message, loading: false };
-      });
+      set({ error: (err as Error).message, loading: false });
     }
   },
   fetchCourseDetails: async (id: string): Promise<void> => {

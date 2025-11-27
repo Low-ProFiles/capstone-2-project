@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getCourses, getCategories, CategoryDto, CourseSummary } from '@/lib/api';
+import { getCourses, getCategories } from '@/lib/api';
+import type { Category, CourseSummary } from '@/types';
 import { REGIONS } from '@/constants/regions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ export default function SearchPage() {
   const [categoryId, setCategoryId] = useState('');
   const [maxCost, setMaxCost] = useState<number | ''>('');
   
-  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [results, setResults] = useState<CourseSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -46,7 +47,7 @@ export default function SearchPage() {
         maxCost: maxCost ? Number(maxCost) : undefined,
       };
       const searchResults = await getCourses(params);
-      setResults(searchResults);
+      setResults(searchResults.content);
     } catch (error) {
       console.error("Failed to search courses:", error);
       alert("코스 검색에 실패했습니다.");
@@ -118,7 +119,7 @@ export default function SearchPage() {
                         <CardTitle className="mt-2">{course.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-gray-600">{course.summary}</p>
+                        <p className="text-sm text-gray-600">{course.description}</p>
                         <div className="mt-4 flex justify-between items-center text-sm font-medium">
                           <span>{course.regionName}</span>
                           <span>{(course.estimatedCost || 0).toLocaleString()}원</span>

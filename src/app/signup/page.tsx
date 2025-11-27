@@ -21,13 +21,24 @@ export default function SignupPage() {
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const { signup, login } = useAuth();
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== passwordConfirm) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    if (!termsAgreed || !privacyAgreed) {
+      alert("이용약관과 개인정보 처리방침에 모두 동의해야 합니다.");
+      return;
+    }
     try {
-      await signup({ nickname, email, password });
+      await signup({ nickname, email, password, passwordConfirm, termsAgreed, privacyAgreed });
       // After signup, attempt to log in
       await login({ email, password }); // Use the login function from useAuth
       router.push("/"); // Redirect to home
@@ -80,6 +91,24 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password-confirm">비밀번호 확인</Label>
+              <Input
+                id="password-confirm"
+                type="password"
+                required
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="terms" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} />
+              <label htmlFor="terms" className="text-sm">이용약관에 동의합니다.</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="privacy" checked={privacyAgreed} onChange={(e) => setPrivacyAgreed(e.target.checked)} />
+              <label htmlFor="privacy" className="text-sm">개인정보 처리방침에 동의합니다.</label>
             </div>
             <Button type="submit" className="w-full">
               회원가입

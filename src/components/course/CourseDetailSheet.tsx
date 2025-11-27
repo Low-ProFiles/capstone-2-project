@@ -170,7 +170,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
               <div className="space-y-4">
                 <div>
                   <h1 className="text-2xl font-bold">{courseDetails.title}</h1>
-                  <p className="text-gray-600 mt-1">{courseDetails.summary}</p>
+                  <p className="text-gray-600 mt-1">{courseDetails.description}</p>
                   <p className="text-sm text-gray-500 mt-2">By {courseDetails.creatorDisplayName}</p>
                 </div>
                 <div className="flex items-center gap-4">

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { login as apiLogin, signup as apiSignup, type LoginDto, type SignUpDto } from '@/lib/api';
+import { login as apiLogin, signup as apiSignup } from '@/lib/api';
+import type { Login, SignUp } from '@/types';
 import { useAuthStore } from './auth.store';
 
 // Define a type for the decoded JWT payload
@@ -19,8 +20,8 @@ interface AuthContextType {
   token: string | null;
   user: DecodedUser | null; // Add user to context type
   isAuthenticated: boolean;
-  login: (credentials: LoginDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
-  signup: (userData: SignUpDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
+  login: (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
+  signup: (userData: SignUp, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
   logout: () => void;
   setAuthToken: (newToken: string) => void;
 }
@@ -36,7 +37,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { token, user, setToken, logout: storeLogout } = useAuthStore();
 
-  const login = async (credentials: LoginDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
+  const login = async (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
     try {
       const data = await apiLogin(credentials);
       setToken(data.token);
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signup = async (userData: SignUpDto, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
+  const signup = async (userData: SignUp, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
     try {
       await apiSignup(userData);
       onSuccess?.();

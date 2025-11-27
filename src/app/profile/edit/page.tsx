@@ -16,29 +16,44 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth-provider";
-import { updateUserProfile as apiUpdateProfile } from "@/lib/api";
-import ImageUpload from "@/components/common/ImageUpload"; // Import ImageUpload
+import { updateUserProfile as apiUpdateProfile, getUserProfile as apiGetUserProfile } from "@/lib/api"; // Import getUserProfile
+import ImageUpload from "@/components/common/ImageUpload";
 
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, Loader2 } from "lucide-react"; // Import Loader2
 
 export default function ProfileEditPage() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const router = useRouter();
 
-  const [nickname, setNickname] = useState(user?.nickname || "");
-  const [bio, setBio] = useState(
-    "안녕하세요! 멋진 코스를 만들고 공유하는 것을 좋아합니다. 🚀"
-  ); // Mock bio
-  const [avatarUrlState, setAvatarUrlState] = useState(
-    "https://github.com/shadcn.png"
-  ); // State for avatar URL
+  const [nickname, setNickname] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrlState, setAvatarUrlState] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      setNickname(user.nickname || "");
-      // If backend provided bio, set it here. For now, using mock.
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      router.push("/login");
+      return;
     }
-  }, [user]);
+
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const profile = await apiGetUserProfile(token);
+        setNickname(profile.nickname);
+        setBio(profile.bio || "");
+        setAvatarUrlState(profile.avatarUrl || "");
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [token, router]);
 
   const handleSave = async () => {
     if (!token) {
@@ -51,13 +66,29 @@ export default function ProfileEditPage() {
         { nickname, bio, avatarUrl: avatarUrlState },
         token
       );
-      alert("프로필이 저장되었습니다. (데모 기능)");
+      alert("프로필이 성공적으로 저장되었습니다.");
       router.push("/profile");
     } catch (error) {
       console.error("Failed to save profile:", error);
       alert("프로필 저장에 실패했습니다.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        프로필을 불러오는데 실패했습니다: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -76,7 +107,7 @@ export default function ProfileEditPage() {
 
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={avatarUrlState} alt={nickname} />
+              <AvatarImage src={avatarUrlState || 'https://github.com/shadcn.png'} alt={nickname} />
               <AvatarFallback>{nickname.charAt(0)}</AvatarFallback>
             </Avatar>
             <ImageUpload

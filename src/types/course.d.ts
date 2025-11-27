@@ -1,74 +1,100 @@
+// This file is generated based on the API documentation provided.
+// It should be the single source of truth for course-related types.
 
-export type ReviewState = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED';
-
-export interface SpotReq {
-  orderNo: number;
-  title: string;
-  description?: string;
-  lat?: number;
-  lng?: number;
-  images?: string[];
-  stayMinutes?: number;
-  price?: number;
-}
-
-export interface CreateCourseReq {
-  categoryId: string; // UUID
-  title: string;
-  summary?: string;
-  coverImageUrl?: string;
-  regionCode?: string;
-  regionName?: string;
-  durationMinutes?: number;
-  estimatedCost?: number;
-  tags?: string[];
-  metadata?: Record<string, unknown>;
-  spots: SpotReq[];
-}
-
+/**
+ * 코스 목록 조회 아이템
+ * GET /api/courses
+ */
 export interface CourseSummary {
-  id: string; // UUID
+  id: string;
   title: string;
-  summary?: string;
-  coverImageUrl?: string;
-  regionName?: string;
-  durationMinutes?: number;
-  estimatedCost?: number;
-  likeCount?: number;
-  purchaseCount?: number;
-  reviewState: ReviewState;
-  lat?: number;
-  lng?: number;
+  description: string;
+  coverImageUrl: string;
+  regionName: string;
+  likeCount: number;
+  createdAt: string;
+  lat: number;
+  lng: number;
+  estimatedCost: number;
+  creatorDisplayName: string;
 }
 
+/**
+ * 코스 상세 정보의 장소(spot) 정보
+ */
 export interface SpotRes {
   orderNo: number;
   title: string;
-  description?: string;
-  lat?: number;
-  lng?: number;
-  images?: string[];
-  stayMinutes?: number;
-  price?: number;
+  description: string;
+  lat: number;
+  lng: number;
+  images: string[];
+  stayMinutes: number;
+  price: number;
 }
 
+/**
+ * 코스 상세 정보
+ * GET /api/courses/{id}
+ */
 export interface CourseDetails {
-  id: string; // UUID
-  creatorId: string; // UUID
+  id: string;
+  creatorId: string;
   creatorDisplayName: string;
-  categorySlug: string;
   title: string;
-  summary?: string;
-  coverImageUrl?: string;
-  regionCode?: string;
-  regionName?: string;
-  durationMinutes?: number;
-  estimatedCost?: number;
-  tags?: string[];
-  metadata?: Record<string, unknown>;
-  likeCount?: number;
-  purchaseCount?: number;
-  reviewState: ReviewState;
-  publishedAt?: string; // OffsetDateTime
+  description: string;
   spots: SpotRes[];
+  isCurrentUserLiked: boolean;
+  // Add fields from summary for completeness
+  coverImageUrl: string;
+  regionName: string;
+  likeCount: number;
+  createdAt: string;
+  tags: string[]; // Also add tags, which is logical for details
 }
+
+/**
+ * 코스 생성/수정 시 장소(spot) 정보
+ */
+export interface SpotReq {
+  orderNo: number;
+  title: string;
+  description: string;
+  lat: number;
+  lng: number;
+  images: string[];
+  stayMinutes: number;
+  price: number;
+}
+
+/**
+ * 코스 생성 요청 DTO
+ * POST /api/courses
+ */
+export interface CreateCourseReq {
+  categoryId: string;
+  title: string;
+  description: string;
+  coverImageUrl?: string;
+  regionCode: string;
+  regionName: string;
+  tags: string[];
+  spots: SpotReq[];
+}
+
+/**
+ * 코스 수정 요청 DTO
+ * PUT /api/courses/{id}
+ * Note: API doc does not specify this, creating a partial from CreateCourseReq
+ * and adding description from CourseDetails for consistency.
+ */
+export type UpdateCourseReq = Partial<{
+  categoryId: string;
+  title: string;
+  description: string;
+  coverImageUrl: string;
+  regionCode: string;
+  regionName: string;
+  tags: string[];
+  spots: SpotReq[];
+}>

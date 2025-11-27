@@ -2,8 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
-import { getCategories, CategoryDto } from "@/lib/api";
+import { getCategories } from "@/lib/api";
+import type { Category } from '@/types';
 import { REGIONS, Region } from '@/constants/regions';
+import type { SpotReq } from '@/types/course';
 
 const AddSpotModal = dynamic(() => import('@/components/course/AddSpotModal'), {
   ssr: false,
@@ -20,19 +22,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ImageUpload from '@/components/common/ImageUpload';
 
-interface SpotReq {
-  orderNo: number;
-  title: string;
-  description?: string;
-  lat?: number;
-  lng?: number;
-  images?: string[];
-  price?: number;
-}
-
 export default function NewCoursePage() {
   const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
+  const [description, setDescription] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
   const [spots, setSpots] = useState<SpotReq[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,9 +32,11 @@ export default function NewCoursePage() {
   const { token, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  const [tagsString, setTagsString] = useState('');
+
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -81,11 +75,11 @@ export default function NewCoursePage() {
     try {
       const courseData = { 
         title, 
-        summary, 
+        description, 
         categoryId: selectedCategory, 
         regionCode: selectedRegion.code,
         regionName: selectedRegion.name,
-        estimatedCost: totalEstimatedCost,
+        tags: tagsString.split(',').map(tag => tag.trim()).filter(tag => tag),
         coverImageUrl, 
         spots 
       };
@@ -156,8 +150,13 @@ export default function NewCoursePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="summary">코스 설명</Label>
-              <Textarea id="summary" placeholder="이 코스에 대한 설명을 입력해주세요." value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} />
+              <Label htmlFor="description">코스 설명</Label>
+              <Textarea id="description" placeholder="이 코스에 대한 설명을 입력해주세요." value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tags">태그 (쉼표로 구분)</Label>
+              <Input id="tags" placeholder="예: 데이트, 카페" value={tagsString} onChange={(e) => setTagsString(e.target.value)} />
             </div>
 
             <ImageUpload onUploadSuccess={setCoverImageUrl} currentImageUrl={coverImageUrl} label="코스 커버 이미지" />

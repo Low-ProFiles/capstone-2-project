@@ -25,7 +25,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         <CardContent className="flex-grow">
           <CardTitle className="text-lg font-bold mb-2">{course.title}</CardTitle>
           <p className="text-sm text-gray-600 mb-2">{course.regionName}</p>
-          <p className="text-sm text-gray-800 line-clamp-2">{course.summary}</p>
+          <p className="text-sm text-gray-800 line-clamp-2">{course.description}</p>
         </CardContent>
       </Link>
       <CardFooter className="flex justify-between items-center">

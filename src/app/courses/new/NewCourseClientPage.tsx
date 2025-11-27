@@ -16,6 +16,7 @@ import { useCreateCourse } from "@/lib/apis/course.api";
 import { useGetCategories } from "@/lib/apis/category.api";
 import { useRouter } from "next/navigation";
 import type { SpotReq } from "@/types";
+import ImageUpload from "@/components/common/ImageUpload";
 
 // A component to manage a single spot's details
 function SpotEditor({
@@ -32,7 +33,11 @@ function SpotEditor({
 }: {
   spot: SpotReq;
   index: number;
-  onSpotChange: (index: number, field: keyof SpotReq, value: string) => void;
+  onSpotChange: (
+    index: number,
+    field: keyof SpotReq,
+    value: string | number
+  ) => void;
   onDelete: (index: number) => void;
   onMove: (index: number, direction: "up" | "down") => void;
   isFirst: boolean;
@@ -98,6 +103,24 @@ function SpotEditor({
           placeholder="A brief note about this spot"
         />
       </div>
+       <div>
+        <Label htmlFor={`spot-price-${index}`}>Price</Label>
+        <Input
+          id={`spot-price-${index}`}
+          type="number"
+          value={spot.price || 0}
+          onChange={(e) => onSpotChange(index, "price", Number(e.target.value))}
+        />
+      </div>
+      <div>
+        <Label htmlFor={`spot-stay-${index}`}>Stay Minutes</Label>
+        <Input
+          id={`spot-stay-${index}`}
+          type="number"
+          value={spot.stayMinutes || 0}
+          onChange={(e) => onSpotChange(index, "stayMinutes", Number(e.target.value))}
+        />
+      </div>
     </div>
   );
 }
@@ -109,8 +132,14 @@ export default function NewCoursePage() {
     useGetCategories();
 
   const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
+  const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string | undefined>();
+  const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [regionCode] = useState("1100000000"); // Default: Seoul
+  const [regionName] = useState("서울특별시");
+  const [durationMinutes, setDurationMinutes] = useState(60);
+  const [estimatedCost, setEstimatedCost] = useState(10000);
+  const [tagsString, setTagsString] = useState("");
   const [spots, setSpots] = useState<SpotReq[]>([]);
   const [selectedSpotIndex, setSelectedSpotIndex] = useState<number | null>(
     null
@@ -125,6 +154,10 @@ export default function NewCoursePage() {
       lng: e.coord.x,
       orderNo: spots.length + 1,
       title: `Spot ${spots.length + 1}`, // Placeholder title
+      description: "",
+      images: [],
+      stayMinutes: 0,
+      price: 0,
     };
     setSpots((prevSpots) => [...prevSpots, newSpot]);
   }, [spots]);
@@ -142,7 +175,7 @@ export default function NewCoursePage() {
   const handleSpotChange = (
     index: number,
     field: keyof SpotReq,
-    value: string
+    value: string | number
   ) => {
     const newSpots = [...spots];
     newSpots[index] = { ...newSpots[index], [field]: value };
@@ -180,13 +213,22 @@ export default function NewCoursePage() {
   };
 
   const handleSubmit = () => {
-    if (!title || !categoryId || spots.length === 0) {
-      alert("Please fill out all fields and add at least one spot.");
+    if (!title || !categoryId || spots.length === 0 || !coverImageUrl) {
+      alert("Please fill out all fields and add at least one spot and a cover image.");
       return;
     }
 
     createCourseMutation.mutate(
-      { title, summary, spots, categoryId },
+      {
+        title,
+        description,
+        categoryId: categoryId!,
+        coverImageUrl,
+        regionCode,
+        regionName,
+        tags: tagsString.split(',').map(t => t.trim()).filter(t => t),
+        spots,
+      },
       {
         onSuccess: (data) => {
           alert("Course created successfully!");
@@ -215,11 +257,11 @@ export default function NewCoursePage() {
             />
           </div>
           <div>
-            <Label htmlFor="summary">Summary</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
-              id="summary"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="A short description"
             />
           </div>
@@ -243,6 +285,37 @@ export default function NewCoursePage() {
                 )}
               </SelectContent>
             </Select>
+          </div>
+          <div>
+              <Label>Cover Image</Label>
+              <ImageUpload onUploadSuccess={setCoverImageUrl} currentImageUrl={coverImageUrl} label="Upload Cover Image" />
+          </div>
+           <div>
+            <Label htmlFor="duration">Duration (minutes)</Label>
+            <Input
+              id="duration"
+              type="number"
+              value={durationMinutes}
+              onChange={(e) => setDurationMinutes(Number(e.target.value))}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cost">Estimated Cost (KRW)</Label>
+            <Input
+              id="cost"
+              type="number"
+              value={estimatedCost}
+              onChange={(e) => setEstimatedCost(Number(e.target.value))}
+            />
+          </div>
+           <div>
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              value={tagsString}
+              onChange={(e) => setTagsString(e.target.value)}
+              placeholder="e.g., cafe, photo, date"
+            />
           </div>
           <hr />
           <h3 className="font-semibold">Spots</h3>

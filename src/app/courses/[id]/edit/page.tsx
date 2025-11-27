@@ -35,7 +35,7 @@ export default function EditCoursePage() {
   const { token, isAuthenticated } = useAuth();
 
   const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
+  const [description, setDescription] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(
     undefined
   );
@@ -66,7 +66,7 @@ export default function EditCoursePage() {
   useEffect(() => {
     if (courseDetails) {
       setTitle(courseDetails.title);
-      setSummary(courseDetails.summary || "");
+      setDescription(courseDetails.description || "");
       setCoverImageUrl(courseDetails.coverImageUrl || undefined);
       setSpots(
         courseDetails.spots.map((spot) => ({
@@ -76,6 +76,8 @@ export default function EditCoursePage() {
           lat: spot.lat,
           lng: spot.lng,
           images: spot.images,
+          stayMinutes: spot.stayMinutes,
+          price: spot.price,
         }))
       );
     }
@@ -89,7 +91,7 @@ export default function EditCoursePage() {
     }
 
     try {
-      const courseData = { title, summary, coverImageUrl, spots };
+      const courseData = { title, description, coverImageUrl, spots };
       await updateCourse(courseId, courseData, token); // Assuming updateCourse API exists
       alert("코스가 성공적으로 수정되었습니다!");
       router.push(`/`); // Redirect to home after edit
@@ -156,12 +158,12 @@ export default function EditCoursePage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="summary">코스 설명</Label>
+              <Label htmlFor="description">코스 설명</Label>
               <Textarea
-                id="summary"
+                id="description"
                 placeholder="이 코스에 대한 설명을 입력해주세요."
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={4}
               />
             </div>
