@@ -1,30 +1,51 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Container as MapDiv, NaverMap, Marker, useNavermaps } from 'react-naver-maps';
-import ImageUpload from '@/components/common/ImageUpload'; // Import ImageUpload
+import { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Container as MapDiv,
+  NaverMap,
+  Marker,
+  useNavermaps,
+} from "react-naver-maps";
+import ImageUpload from "@/components/common/ImageUpload"; // Import ImageUpload
 
-import type { SpotReq } from '@/types/course';
+import type { SpotReq } from "@/types/course";
 
 // Define the props for the modal
 interface AddSpotModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (spot: Omit<SpotReq, 'orderNo'>) => void; // A more specific type should be used
+  onSave: (spot: Omit<SpotReq, "orderNo">) => void; // A more specific type should be used
   orderNo: number; // This is for new spots, or the order of the spot being edited
   editingSpot?: SpotReq | null; // New prop for editing
 }
 
-export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: AddSpotModalProps) {
+export default function AddSpotModal({
+  isOpen,
+  onClose,
+  onSave,
+  editingSpot,
+}: AddSpotModalProps) {
   const navermaps = useNavermaps();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
   const [stayMinutes, setStayMinutes] = useState(0);
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
-  const [spotImageUrl, setSpotImageUrl] = useState<string | undefined>(undefined);
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+  const [spotImageUrl, setSpotImageUrl] = useState<string | undefined>(
+    undefined
+  );
   const [map, setMap] = useState<naver.maps.Map | null>(null);
 
   useEffect(() => {
@@ -32,7 +53,7 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
     if (isOpen) {
       if (editingSpot) {
         setTitle(editingSpot.title);
-        setDescription(editingSpot.description || '');
+        setDescription(editingSpot.description || "");
         setPrice(editingSpot.price || 0);
         setStayMinutes(editingSpot.stayMinutes || 0);
         if (editingSpot.lat && editingSpot.lng) {
@@ -40,10 +61,14 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
         } else {
           setPosition(null);
         }
-        setSpotImageUrl(editingSpot.images && editingSpot.images.length > 0 ? editingSpot.images[0] : undefined);
+        setSpotImageUrl(
+          editingSpot.images && editingSpot.images.length > 0
+            ? editingSpot.images[0]
+            : undefined
+        );
       } else {
-        setTitle('');
-        setDescription('');
+        setTitle("");
+        setDescription("");
         setPrice(0);
         setPosition(null);
         setSpotImageUrl(undefined);
@@ -68,7 +93,7 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
 
   const handleSave = () => {
     if (!title || !position) {
-      alert('장소 이름과 위치를 모두 지정해야 합니다.');
+      alert("장소 이름과 위치를 모두 지정해야 합니다.");
       return;
     }
     onSave({
@@ -87,33 +112,57 @@ export default function AddSpotModal({ isOpen, onClose, onSave, editingSpot }: A
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg">
         <DialogHeader>
-          <DialogTitle>{editingSpot ? '장소 수정' : '새로운 장소 추가'}</DialogTitle>
+          <DialogTitle>
+            {editingSpot ? "장소 수정" : "새로운 장소 추가"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <MapDiv className="h-64 w-full">
             <NaverMap
               ref={setMap}
-              defaultCenter={position ? new navermaps.LatLng(position.lat, position.lng) : new navermaps.LatLng(37.5665, 126.9780)} // Default to Seoul or editing spot's position
-              defaultZoom={15}
+              defaultCenter={
+                position
+                  ? new navermaps.LatLng(position.lat, position.lng)
+                  : new navermaps.LatLng(37.2305868, 127.1878064)
+              } // Default to Seoul or editing spot's position
+              defaultZoom={16}
             >
               {position && <Marker position={position} />}
             </NaverMap>
           </MapDiv>
           <div className="space-y-2">
             <Label htmlFor="spot-title">장소 이름</Label>
-            <Input id="spot-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input
+              id="spot-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="spot-description">장소 설명</Label>
-            <Input id="spot-description" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Input
+              id="spot-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="spot-price">예상 비용 (원)</Label>
-            <Input id="spot-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+            <Input
+              id="spot-price"
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(Number(e.target.value))}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="spot-stay-minutes">예상 체류 시간 (분)</Label>
-            <Input id="spot-stay-minutes" type="number" value={stayMinutes} onChange={(e) => setStayMinutes(Number(e.target.value))} />
+            <Input
+              id="spot-stay-minutes"
+              type="number"
+              value={stayMinutes}
+              onChange={(e) => setStayMinutes(Number(e.target.value))}
+            />
           </div>
           <ImageUpload
             onUploadSuccess={setSpotImageUrl}

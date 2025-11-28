@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import AddPlaceModal from '@/components/AddPlaceModal';
-import { Place } from '@/lib/types';
+import { useState } from "react";
+import AddPlaceModal from "@/components/AddPlaceModal";
+import { Place } from "@/lib/types";
 
 const CreateCoursePage = () => {
-  const [courseTitle, setCourseTitle] = useState('');
-  const [courseDescription, setCourseDescription] = useState('');
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseDescription, setCourseDescription] = useState("");
   const [places, setPlaces] = useState<Place[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -28,17 +28,22 @@ const CreateCoursePage = () => {
   return (
     <div className="flex flex-col items-center min-h-screen p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6 space-y-4">
-        <h2 className="text-xl font-bold text-center mb-4">새로운 코스 만들기</h2>
+        <h2 className="text-xl font-bold text-center mb-4">
+          새로운 코스 만들기
+        </h2>
 
         {/* Course Title Input */}
         <div>
-          <label htmlFor="courseTitle" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="courseTitle"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             코스 제목
           </label>
           <input
             type="text"
             id="courseTitle"
-            placeholder="예: 홍대 감성 카페 투어"
+            placeholder="예: 공강 시간 보내기 좋은 코스"
             value={courseTitle}
             onChange={(e) => setCourseTitle(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -47,7 +52,10 @@ const CreateCoursePage = () => {
 
         {/* Course Description Input */}
         <div>
-          <label htmlFor="courseDescription" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="courseDescription"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             코스 설명
           </label>
           <textarea
@@ -66,12 +74,16 @@ const CreateCoursePage = () => {
           {places.length > 0 ? (
             <ul className="space-y-2 mb-4">
               {places.map((place, index) => (
-                <li key={place.id || index} className="bg-gray-50 p-2 rounded-md flex justify-between items-center">
-                  <span>{index + 1}. {place.name}</span>
+                <li
+                  key={place.id || index}
+                  className="bg-gray-50 p-2 rounded-md flex justify-between items-center"
+                >
+                  <span>
+                    {index + 1}. {place.name}
+                  </span>
                   {/* Optionally add a remove button here */}
                 </li>
-              ))
-            }
+              ))}
             </ul>
           ) : (
             <p className="text-gray-500 mb-4">아직 추가된 장소가 없습니다.</p>

@@ -6,33 +6,25 @@ import { useCourseStore } from "@/store/course.store";
 import type { Place } from "@/lib/types";
 import CourseDetailSheet from "@/components/course/CourseDetailSheet";
 import { CourseEmptyState } from "@/components/common/CourseEmptyState";
-import CategoryFilter from "@/components/common/CategoryFilter";
 import { Loader2 } from "lucide-react";
+import { useNavermaps } from "react-naver-maps";
 
 // Dynamically import MapView with ssr: false
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
 const HomePage = () => {
+  const navermaps = useNavermaps();
   const { coursesPage, error, loading, fetchCourses, fetchCourseDetails } =
     useCourseStore();
-
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-
   const [isSheetReady, setIsSheetReady] = useState(false);
-
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
-  );
-
   const [mapCenter, setMapCenter] = useState({ lat: 37.228, lng: 127.18654 });
-
   const [mapRerenderKey, setMapRerenderKey] = useState(0);
-
   const [isViewportEmpty, setIsViewportEmpty] = useState(false);
 
   useEffect(() => {
-    fetchCourses({ categoryId: selectedCategoryId || undefined });
-  }, [fetchCourses, selectedCategoryId]);
+    fetchCourses({});
+  }, [fetchCourses]);
 
   const displayCourses = coursesPage?.content;
 
@@ -75,14 +67,14 @@ const HomePage = () => {
   };
 
   const handleBoundsChanged = (bounds: naver.maps.Bounds) => {
-    if (!courseMarkers || courseMarkers.length === 0) {
+    if (!navermaps || !courseMarkers || courseMarkers.length === 0) {
       setIsViewportEmpty(true);
 
       return;
     }
 
     const visibleMarkers = courseMarkers.filter((marker) =>
-      bounds.hasPoint(new naver.maps.LatLng(marker.lat, marker.lng))
+      bounds.hasPoint(new navermaps.LatLng(marker.lat, marker.lng))
     );
 
     setIsViewportEmpty(visibleMarkers.length === 0);
@@ -100,10 +92,7 @@ const HomePage = () => {
         )}
       </div>
 
-      <CategoryFilter
-        onSelectCategory={setSelectedCategoryId}
-        selectedCategoryId={selectedCategoryId}
-      />
+
 
       <div className="flex-grow relative">
         {loading && (

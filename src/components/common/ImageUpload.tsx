@@ -17,17 +17,24 @@ interface ImageUploadProps {
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, currentImageUrl, label = "이미지 업로드" }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl); // Clean up previous preview URL
+    }
     if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
+      const selectedFile = event.target.files[0];
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
       setError(null);
     } else {
       setFile(null);
+      setPreviewUrl(null);
     }
   };
 
@@ -88,11 +95,22 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, currentImage
         </Button>
       </div>
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      {currentImageUrl && !file && (
-        <div className="mt-2">
-          <p className="text-sm text-gray-500">현재 이미지:</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={currentImageUrl} alt="Current" className="w-24 h-24 object-cover rounded-md mt-1" />
+      {(currentImageUrl || previewUrl) && (
+        <div className="mt-2 space-y-2">
+          {currentImageUrl && !previewUrl && (
+            <div>
+              <p className="text-sm text-gray-500">현재 이미지:</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={currentImageUrl} alt="Current" className="w-24 h-24 object-cover rounded-md mt-1" />
+            </div>
+          )}
+          {previewUrl && (
+            <div>
+              <p className="text-sm text-gray-500">새 이미지 미리보기:</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt="Preview" className="w-24 h-24 object-cover rounded-md mt-1" />
+            </div>
+          )}
         </div>
       )}
     </div>

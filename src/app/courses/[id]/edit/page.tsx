@@ -151,7 +151,7 @@ export default function EditCoursePage() {
               <Label htmlFor="title">코스 제목</Label>
               <Input
                 id="title"
-                placeholder="예: 홍대 감성 카페 투어"
+                placeholder="예: 공강 시간 보내기 좋은 코스"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required

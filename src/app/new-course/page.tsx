@@ -1,13 +1,13 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-import { useMemo } from 'react';
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 import { getCategories } from "@/lib/api";
-import type { Category } from '@/types';
-import { REGIONS, Region } from '@/constants/regions';
-import type { SpotReq } from '@/types/course';
+import type { Category } from "@/types";
+import { REGIONS, Region } from "@/constants/regions";
+import type { SpotReq } from "@/types/course";
 
-const AddSpotModal = dynamic(() => import('@/components/course/AddSpotModal'), {
+const AddSpotModal = dynamic(() => import("@/components/course/AddSpotModal"), {
   ssr: false,
 });
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,15 @@ import { Label } from "@radix-ui/react-label";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import ImageUpload from '@/components/common/ImageUpload';
+import ImageUpload from "@/components/common/ImageUpload";
+import { TagInput } from "@/components/common/TagInput";
 
 export default function NewCoursePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(
+    undefined
+  );
   const [spots, setSpots] = useState<SpotReq[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpot, setEditingSpot] = useState<SpotReq | null>(null);
@@ -35,8 +38,7 @@ export default function NewCoursePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
-  const [tagsString, setTagsString] = useState('');
-
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -73,15 +75,15 @@ export default function NewCoursePage() {
     }
 
     try {
-      const courseData = { 
-        title, 
-        description, 
-        categoryId: selectedCategory, 
+      const courseData = {
+        title,
+        description,
+        categoryId: selectedCategory,
         regionCode: selectedRegion.code,
         regionName: selectedRegion.name,
-        tags: tagsString.split(',').map(tag => tag.trim()).filter(tag => tag),
-        coverImageUrl, 
-        spots 
+        tags,
+        coverImageUrl,
+        spots,
       };
       await createCourse(courseData, token);
       alert("새로운 코스가 성공적으로 생성되었습니다!");
@@ -94,7 +96,13 @@ export default function NewCoursePage() {
 
   const handleSaveSpot = (savedSpot: Omit<SpotReq, "orderNo">) => {
     if (editingSpot) {
-      setSpots(spots.map(s => s.orderNo === editingSpot.orderNo ? { ...savedSpot, orderNo: editingSpot.orderNo } : s));
+      setSpots(
+        spots.map((s) =>
+          s.orderNo === editingSpot.orderNo
+            ? { ...savedSpot, orderNo: editingSpot.orderNo }
+            : s
+        )
+      );
       setEditingSpot(null);
     } else {
       setSpots([...spots, { ...savedSpot, orderNo: spots.length + 1 }]);
@@ -125,25 +133,55 @@ export default function NewCoursePage() {
           <form className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">코스 제목</Label>
-              <Input id="title" placeholder="예: 홍대 감성 카페 투어" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <Input
+                id="title"
+                placeholder="예: 공강 시간 보내기 좋은 코스"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">카테고리</Label>
-                <select id="category" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                  <option value="" disabled>카테고리 선택</option>
+                <select
+                  id="category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="" disabled>
+                    카테고리 선택
+                  </option>
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="region">지역</Label>
-                <select id="region" value={selectedRegion?.code || ""} onChange={(e) => setSelectedRegion(REGIONS.find(r => r.code === e.target.value) || null)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                  <option value="" disabled>지역 선택</option>
+                <select
+                  id="region"
+                  value={selectedRegion?.code || ""}
+                  onChange={(e) =>
+                    setSelectedRegion(
+                      REGIONS.find((r) => r.code === e.target.value) || null
+                    )
+                  }
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="" disabled>
+                    지역 선택
+                  </option>
                   {REGIONS.map((region) => (
-                    <option key={region.code} value={region.code}>{region.name}</option>
+                    <option key={region.code} value={region.code}>
+                      {region.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -151,51 +189,107 @@ export default function NewCoursePage() {
 
             <div className="space-y-2">
               <Label htmlFor="description">코스 설명</Label>
-              <Textarea id="description" placeholder="이 코스에 대한 설명을 입력해주세요." value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+              <Textarea
+                id="description"
+                placeholder="이 코스에 대한 설명을 입력해주세요."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tags">태그 (쉼표로 구분)</Label>
-              <Input id="tags" placeholder="예: 데이트, 카페" value={tagsString} onChange={(e) => setTagsString(e.target.value)} />
+              <Label htmlFor="tags">태그</Label>
+              <TagInput
+                id="tags"
+                placeholder="태그를 입력하세요"
+                tags={tags}
+                setTags={setTags}
+              />
             </div>
 
-            <ImageUpload onUploadSuccess={setCoverImageUrl} currentImageUrl={coverImageUrl} label="코스 커버 이미지" />
+            <ImageUpload
+              onUploadSuccess={setCoverImageUrl}
+              currentImageUrl={coverImageUrl}
+              label="코스 커버 이미지"
+            />
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>코스 장소</Label>
-                <div className="text-lg font-semibold">총 예상 비용: {totalEstimatedCost.toLocaleString()}원</div>
+                <div className="text-lg font-semibold">
+                  총 예상 비용: {totalEstimatedCost.toLocaleString()}원
+                </div>
               </div>
               <div className="space-y-2">
                 {spots.map((spot) => (
-                  <div key={spot.orderNo} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={spot.orderNo}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center">
-                      <span className="text-lg font-bold text-blue-600 mr-4">{spot.orderNo}</span>
+                      <span className="text-lg font-bold text-blue-600 mr-4">
+                        {spot.orderNo}
+                      </span>
                       <div>
                         <p className="font-semibold">{spot.title}</p>
-                        <p className="text-sm text-gray-500">{spot.description}</p>
-                        <p className="text-sm font-medium text-blue-600">예상 비용: {(spot.price || 0).toLocaleString()}원</p>
+                        <p className="text-sm text-gray-500">
+                          {spot.description}
+                        </p>
+                        <p className="text-sm font-medium text-blue-600">
+                          예상 비용: {(spot.price || 0).toLocaleString()}원
+                        </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" type="button" onClick={() => handleEditSpot(spot)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" type="button" onClick={() => handleRemoveSpot(spot.orderNo)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={() => handleEditSpot(spot)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={() => handleRemoveSpot(spot.orderNo)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button type="button" variant="outline" className="w-full flex items-center" onClick={() => { setEditingSpot(null); setIsModalOpen(true); }}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full flex items-center"
+                onClick={() => {
+                  setEditingSpot(null);
+                  setIsModalOpen(true);
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 장소 추가
               </Button>
             </div>
 
-            <Button type="button" className="w-full" onClick={handleSubmit}>코스 생성하기</Button>
+            <Button type="button" className="w-full" onClick={handleSubmit}>
+              코스 생성하기
+            </Button>
           </form>
         </CardContent>
       </Card>
 
-      <AddSpotModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveSpot} orderNo={editingSpot ? editingSpot.orderNo : spots.length + 1} editingSpot={editingSpot} />
+      <AddSpotModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveSpot}
+        orderNo={editingSpot ? editingSpot.orderNo : spots.length + 1}
+        editingSpot={editingSpot}
+      />
     </div>
   );
 }

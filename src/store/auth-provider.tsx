@@ -21,7 +21,7 @@ interface AuthContextType {
   user: DecodedUser | null; // Add user to context type
   isAuthenticated: boolean;
   login: (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
-  signup: (userData: SignUp, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
+  signup: (userData: SignUp) => Promise<string>; // Modified return type
   logout: () => void;
   setAuthToken: (newToken: string) => void;
 }
@@ -49,13 +49,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signup = async (userData: SignUp, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
+  // Modified signup to return the string message from the API
+  const signup = async (userData: SignUp): Promise<string> => {
     try {
-      await apiSignup(userData);
-      onSuccess?.();
+      const message = await apiSignup(userData);
+      return message; // Return the message
     } catch (error) {
       console.error('Signup failed:', error);
-      onFailure?.(error as Error);
       throw error; // Re-throw to allow calling component to handle
     }
   };

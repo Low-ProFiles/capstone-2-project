@@ -16,10 +16,12 @@ import type {
 
 // Generic fetch function to handle common headers and errors
 export const apiFetch = async (url: string, options: RequestInit = {}) => {
-  const headers = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
+  const headers: Record<string, string> = { ...options.headers as Record<string, string> };
+
+  // Let the browser set the Content-Type for FormData
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const response = await fetch(process.env.NEXT_PUBLIC_API_URL + url, { ...options, headers });
 
@@ -37,7 +39,12 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     return null;
   }
 
-  return response.json();
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  } else {
+    return response.text();
+  }
 };
 
 // --- Auth --- //
@@ -51,6 +58,12 @@ export const login = (credentials: Login): Promise<Token> =>
   apiFetch(`/api/auth/login`, {
     method: "POST",
     body: JSON.stringify(credentials),
+  });
+
+export const kakaoLogin = (code: string): Promise<Token> =>
+  apiFetch(`/api/auth/login/kakao`, { // 참고: 이 엔드포인트는 백엔드에 추가 구현이 필요합니다.
+    method: "POST",
+    body: JSON.stringify({ code }),
   });
 
 export const setNickname = (nickname: string, token: string): Promise<void> =>

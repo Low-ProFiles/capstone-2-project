@@ -22,13 +22,34 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [passwordError, setPasswordError] = useState(""); // Added passwordError state
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const { signup, login } = useAuth();
+  const { signup } = useAuth();
   const router = useRouter();
+
+  // New validation function
+  const validatePassword = (pw: string) => {
+    if (pw.length > 0 && pw.length < 8) {
+      setPasswordError("비밀번호는 8자 이상이어야 합니다.");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
+  // Modified password change handler
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    validatePassword(newPassword);
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validatePassword(password)) return; // Client-side password length validation
+
     if (password !== passwordConfirm) {
       alert("비밀번호가 일치하지 않습니다.");
       return;
@@ -38,18 +59,31 @@ export default function SignupPage() {
       return;
     }
     try {
-      await signup({ nickname, email, password, passwordConfirm, termsAgreed, privacyAgreed });
-      // After signup, attempt to log in
-      await login({ email, password }); // Use the login function from useAuth
-      router.push("/"); // Redirect to home
+      // The 'signup' function now correctly handles a text response
+      const responseMessage = await signup({ nickname, email, password, passwordConfirm, termsAgreed, privacyAgreed });
+      alert(responseMessage || "회원가입 요청에 성공했습니다. 이메일로 전송된 코드를 확인해주세요.");
+      // Redirect to the new verification page
+      router.push("/signup/verify-email");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        alert(err.message || "회원가입 또는 로그인에 실패했습니다.");
+        alert(err.message || "회원가입에 실패했습니다.");
       } else {
         alert("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
+
+  // isSubmitDisabled logic
+  const isSubmitDisabled =
+    !nickname ||
+    !email ||
+    !password ||
+    !passwordConfirm ||
+    password.length < 8 || // Password length check
+    password !== passwordConfirm || // Password mismatch check
+    !termsAgreed ||
+    !privacyAgreed ||
+    !!passwordError; // Disable if there's a password format error
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -89,8 +123,9 @@ export default function SignupPage() {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange} // Use new handler
               />
+              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>} {/* Display password error */}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password-confirm">비밀번호 확인</Label>
@@ -101,6 +136,9 @@ export default function SignupPage() {
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
               />
+              {password && passwordConfirm && password !== passwordConfirm && (
+                <p className="text-sm text-red-500">비밀번호가 일치하지 않습니다.</p>
+              )} {/* Display password mismatch error */}
             </div>
             <div className="flex items-center space-x-2">
               <input type="checkbox" id="terms" checked={termsAgreed} onChange={(e) => setTermsAgreed(e.target.checked)} />
@@ -110,7 +148,7 @@ export default function SignupPage() {
               <input type="checkbox" id="privacy" checked={privacyAgreed} onChange={(e) => setPrivacyAgreed(e.target.checked)} />
               <label htmlFor="privacy" className="text-sm">개인정보 처리방침에 동의합니다.</label>
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isSubmitDisabled}> {/* Disable button */}
               회원가입
             </Button>
           </form>
