@@ -25,7 +25,8 @@ export default function ProfileEditPage() {
   const { token } = useAuth();
   const router = useRouter();
 
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState(""); // For display purposes
+  const [displayName, setDisplayName] = useState(""); // For editing
   const [bio, setBio] = useState("");
   const [avatarUrlState, setAvatarUrlState] = useState("");
 
@@ -44,6 +45,7 @@ export default function ProfileEditPage() {
         setLoading(true);
         const profile = await apiGetUserProfile(token);
         setNickname(profile.nickname);
+        setDisplayName(profile.displayName);
         setBio(profile.bio || "");
         setAvatarUrlState(profile.avatarUrl || "");
       } catch (err: unknown) {
@@ -63,7 +65,7 @@ export default function ProfileEditPage() {
     }
     try {
       await apiUpdateProfile(
-        { nickname, bio, avatarUrl: avatarUrlState },
+        { displayName, bio, avatarUrl: avatarUrlState }, // Send displayName
         token
       );
       alert("프로필이 성공적으로 저장되었습니다.");
@@ -108,7 +110,7 @@ export default function ProfileEditPage() {
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="w-24 h-24">
               <AvatarImage src={avatarUrlState || 'https://github.com/shadcn.png'} alt={nickname} />
-              <AvatarFallback>{nickname.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{(displayName || nickname).charAt(0)}</AvatarFallback>
             </Avatar>
             <ImageUpload
               onUploadSuccess={setAvatarUrlState}
@@ -118,11 +120,11 @@ export default function ProfileEditPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nickname">표시 이름</Label>
+            <Label htmlFor="displayName">표시 이름</Label>
             <Input
-              id="nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
             />
           </div>
 

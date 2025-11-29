@@ -1,15 +1,13 @@
 export interface UserProfileDto {
-  id: string;
   email: string;
   nickname: string;
+  displayName: string;
   bio?: string;
   avatarUrl?: string;
-  courseCount: number;
-  likeCount: number;
 }
 
 export interface ProfileUpdateDto {
-  nickname?: string;
+  displayName?: string;
   bio?: string;
   avatarUrl?: string;
 }

@@ -185,7 +185,7 @@ export const getCategories = (): Promise<Category[]> => {
 
 // --- Profile --- //
 export const getUserProfile = (token: string): Promise<UserProfileDto> => {
-  return apiFetch(`/api/users/me`, {
+  return apiFetch(`/api/profile/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -195,9 +195,9 @@ export const getUserProfile = (token: string): Promise<UserProfileDto> => {
 export const updateUserProfile = (
   profileData: ProfileUpdateDto,
   token: string
-): Promise<UserProfileDto> => {
-  return apiFetch(`/api/users/me`, {
-    method: "PATCH",
+): Promise<string> => {
+  return apiFetch(`/api/profile/me`, {
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
     },

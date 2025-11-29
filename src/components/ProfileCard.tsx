@@ -49,18 +49,6 @@ const ProfileCard = () => {
       {/* Bio */}
       <p className="text-center text-gray-700">{userProfile.bio}</p>
 
-      {/* Metrics Row */}
-      <div className="flex justify-around bg-gray-100 rounded-lg p-3">
-        <div className="text-center">
-          <p className="font-semibold">작성한 코스</p>
-          <p className="text-lg">{userProfile.courseCount}</p>
-        </div>
-        <div className="text-center">
-          <p className="font-semibold">받은 좋아요</p>
-          <p className="text-lg">{userProfile.likeCount}</p>
-        </div>
-      </div>
-
       {/* Edit Profile Button */}
       <Link href="/profile/edit">
         <button className="w-full py-3 border border-gray-300 rounded-full bg-white text-gray-800 font-semibold shadow-sm">
