@@ -28,11 +28,17 @@ export const useAuthStore = create<AuthState>()(
       userProfile: null,
       setToken: (token) => {
         if (token) {
+          console.log("Attempting to decode token:", token);
+          if (typeof token !== 'string' || token.split('.').length !== 3) {
+            console.error("Token is not a valid JWT format (must be a string with 3 parts). Token:", token);
+            set({ token: null, decodedUser: null, userProfile: null });
+            return;
+          }
           try {
             const decoded: DecodedUser = jwtDecode(token);
             set({ token, decodedUser: decoded, userProfile: null }); // Reset profile on new token
           } catch (error) {
-            console.error('Failed to decode token:', error);
+            console.error('jwtDecode failed. Token:', token, 'Error:', error);
             set({ token: null, decodedUser: null, userProfile: null });
           }
         } else {
