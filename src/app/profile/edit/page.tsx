@@ -16,7 +16,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth-provider";
-import { updateUserProfile as apiUpdateProfile, getUserProfile as apiGetUserProfile } from "@/lib/api"; // Import getUserProfile
+import {
+  updateUserProfile as apiUpdateProfile,
+  getUserProfile as apiGetUserProfile,
+} from "@/lib/api"; // Import getUserProfile
 import ImageUpload from "@/components/common/ImageUpload";
 
 import { TriangleAlert, Loader2 } from "lucide-react"; // Import Loader2
@@ -34,28 +37,26 @@ export default function ProfileEditPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      alert("로그인이 필요합니다.");
-      router.push("/login");
-      return;
+    if (token) {
+      const fetchProfile = async () => {
+        try {
+          setLoading(true);
+          const profile = await apiGetUserProfile(token);
+          setNickname(profile.nickname);
+          setDisplayName(profile.displayName);
+          setBio(profile.bio || "");
+          setAvatarUrlState(profile.avatarUrl || "");
+        } catch (err: unknown) {
+          setError((err as Error).message);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProfile();
+    } else {
+      setLoading(false);
     }
-
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const profile = await apiGetUserProfile(token);
-        setNickname(profile.nickname);
-        setDisplayName(profile.displayName);
-        setBio(profile.bio || "");
-        setAvatarUrlState(profile.avatarUrl || "");
-      } catch (err: unknown) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [token, router]);
+  }, [token]);
 
   const handleSave = async () => {
     if (!token) {
@@ -80,6 +81,21 @@ export default function ProfileEditPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
+        <TriangleAlert className="h-12 w-12 text-yellow-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">로그인이 필요합니다</h2>
+        <p className="mb-6 text-gray-600">
+          이 페이지에 접근하려면 먼저 로그인해주세요.
+        </p>
+        <Link href="/login">
+          <Button>로그인 페이지로 이동</Button>
+        </Link>
       </div>
     );
   }
@@ -109,8 +125,13 @@ export default function ProfileEditPage() {
 
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={avatarUrlState || 'https://github.com/shadcn.png'} alt={nickname} />
-              <AvatarFallback>{(displayName || nickname).charAt(0)}</AvatarFallback>
+              <AvatarImage
+                src={avatarUrlState || "/images/profile.avif"}
+                alt={nickname}
+              />
+              <AvatarFallback>
+                {(displayName || nickname).charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <ImageUpload
               onUploadSuccess={setAvatarUrlState}

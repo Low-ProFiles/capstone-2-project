@@ -50,6 +50,22 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  if (!token) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
+        <TriangleAlert className="h-12 w-12 text-yellow-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">로그인이 필요합니다</h2>
+        <p className="mb-6 text-gray-600">
+          이 페이지에 접근하려면 먼저 로그인해주세요.
+        </p>
+        <Link href="/login">
+          <Button>로그인 페이지로 이동</Button>
+        </Link>
+      </div>
+    );
+  }
+
   console.log(error, "error");
 
   if (error) {
@@ -63,7 +79,7 @@ export default function ProfilePage() {
   // Use userProfile data from context or fetched profile, fallback to placeholders
   const displayName = userProfile?.nickname || user?.nickname || "Guest";
   const email = userProfile?.email || user?.email || "guest@example.com";
-  const avatarUrl = userProfile?.avatarUrl || "https://github.com/shadcn.png"; // Placeholder image if no avatarUrl
+  const avatarUrl = userProfile?.avatarUrl || "/images/profile.avif"; // Placeholder image if no avatarUrl
   const bio = userProfile?.bio || "아직 자기소개가 없습니다."; // Use fetched bio or default
 
   return (
@@ -78,14 +94,6 @@ export default function ProfilePage() {
           <CardDescription>{email}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-md flex items-center">
-            <TriangleAlert className="h-5 w-5 mr-3" />
-            <p className="text-sm">
-              데모용 페이지입니다. 표시되는 데이터는 실제 사용자 정보가
-              아닙니다.
-            </p>
-          </div>
-
           <p className="text-center mb-6">{bio}</p>
 
           <Link href="/profile/edit" className="w-full">
