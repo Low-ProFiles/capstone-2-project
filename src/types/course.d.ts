@@ -45,6 +45,7 @@ export interface CourseDetails {
   description: string;
   spots: SpotRes[];
   isCurrentUserLiked: boolean;
+  categoryId: string;
   // Add fields from summary for completeness
   coverImageUrl: string;
   regionName: string;

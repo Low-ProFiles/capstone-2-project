@@ -29,7 +29,7 @@ export const useCourseStore = create<CourseState>((set) => ({
     }
   },
   fetchCourseDetails: async (id: string): Promise<void> => {
-    set({ loading: true, error: null }); 
+    set({ loading: true, error: null });
     try {
       const details = await getCourseById(id);
       set({ courseDetails: details, loading: false });

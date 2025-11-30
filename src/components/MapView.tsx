@@ -5,8 +5,9 @@ import {
   Marker,
   Polyline,
   useNavermaps,
-} from "react-naver-maps"; // Removed InfoWindow import
+} from "react-naver-maps";
 import { Place } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 
 type MapViewProps = {
   center?: { lat: number; lng: number };
@@ -17,7 +18,7 @@ type MapViewProps = {
   draggableMarkers?: boolean;
   polylinePath?: { lat: number; lng: number }[];
   onInfoWindowClose?: () => void;
-  onBoundsChanged?: (bounds: naver.maps.Bounds) => void;
+  onViewportChange?: (isEmpty: boolean) => void;
   activePlaceId?: string | null;
 };
 
@@ -30,7 +31,7 @@ const MapView = ({
   draggableMarkers = false,
   polylinePath = [],
   onInfoWindowClose,
-  onBoundsChanged,
+  onViewportChange,
   activePlaceId = null,
 }: MapViewProps) => {
   const navermaps = useNavermaps();
@@ -38,7 +39,7 @@ const MapView = ({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !navermaps) return;
 
     const listeners: naver.maps.MapEventListener[] = [];
 
@@ -50,21 +51,32 @@ const MapView = ({
       );
     }
 
-    if (onBoundsChanged) {
+    // Handle viewport changes internally
+    if (onViewportChange) {
+      const handleBoundsChanged = () => {
+        if (!navermaps || !markers || markers.length === 0) {
+          onViewportChange(true);
+          return;
+        }
+        const bounds = map.getBounds();
+        const visibleMarkers = markers.filter((marker) =>
+          bounds.hasPoint(new navermaps.LatLng(marker.lat, marker.lng))
+        );
+        onViewportChange(visibleMarkers.length === 0);
+      };
+
       listeners.push(
-        navermaps.Event.addListener(map, "idle", () => {
-          onBoundsChanged(map.getBounds());
-        })
+        navermaps.Event.addListener(map, "idle", handleBoundsChanged)
       );
       // Initial call
-      onBoundsChanged(map.getBounds());
+      handleBoundsChanged();
     }
 
     // Cleanup listeners on component unmount
     return () => {
       listeners.forEach((listener) => navermaps.Event.removeListener(listener));
     };
-  }, [onInfoWindowClose, onBoundsChanged, navermaps]);
+  }, [onInfoWindowClose, onViewportChange, navermaps, markers]);
 
   // Effect to update map center and zoom when props change
   useEffect(() => {
@@ -83,6 +95,14 @@ const MapView = ({
       <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600">
         Naver Maps Client ID is missing. Please set
         NEXT_PUBLIC_NAVER_MAP_CLIENT_ID in your .env.local file.
+      </div>
+    );
+  }
+
+  if (!navermaps) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -110,97 +130,51 @@ const MapView = ({
 
         {markers.map((place, index) => {
           const isCurrentPlaceActive = activePlaceId === place.id;
-          const shortDesc = place.desc && place.desc.length > 60 ? `${place.desc.substring(0, 60)}...` : place.desc;
 
           const activeMarkerContent = `
             <div style="
+              position: relative;
+              width: 44px;
+              height: 44px;
+              border-radius: 50%;
+              background-image: url('${place.imageUrl}');
+              background-size: cover;
+              background-position: center;
+              border: 3px solid #5347AA;
+              box-shadow: 0 6px 12px rgba(0,0,0,0.35);
               display: flex;
               align-items: center;
-              transform-origin: left bottom;
+              justify-content: center;
               transition: all 0.2s ease;
-            "
-              onmouseover="this.style.transform='scale(1.05)'; this.style.zIndex='100';"
-              onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';"
-            >
-              <!-- Numbered Circle -->
+              transform: scale(1.1);
+            ">
               <div style="
-                position: relative;
-                width: 44px;
-                height: 44px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
                 border-radius: 50%;
-                background-image: url('${place.imageUrl}');
-                background-size: cover;
-                background-position: center;
-                border: 3px solid #5347AA;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                z-index: 2;
-              ">
-                <div style="
-                  position: absolute;
-                  top: 0;
-                  left: 0;
-                  width: 100%;
-                  height: 100%;
-                  border-radius: 50%;
-                  background-color: rgba(0, 0, 0, 0.4);
-                "></div>
-                <span style="
-                  position: relative;
-                  color: white;
-                  font-size: 16px;
-                  font-weight: bold;
-                  text-shadow: 0 0 4px black;
-                ">${index + 1}</span>
-                <div style="
-                  position: absolute;
-                  bottom: -10px;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  width: 0;
-                  height: 0;
-                  border-left: 10px solid transparent;
-                  border-right: 10px solid transparent;
-                  border-top: 14px solid #5347AA;
-                "></div>
-              </div>
-
-              <!-- Text Box -->
+                background-color: rgba(0, 0, 0, 0.4);
+              "></div>
+              <span style="
+                position: relative;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                text-shadow: 0 0 4px black;
+              ">${index + 1}</span>
               <div style="
-                background-color: white;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                padding: 8px 12px;
-                margin-left: -22px; /* Overlap with the circle */
-                padding-left: 30px; /* Space for the overlap */
-                box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
-                max-width: 180px;
-                white-space: normal;
-                z-index: 1;
-              ">
-                <div style="
-                  font-weight: bold;
-                  font-size: 14px;
-                  color: #333;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                ">${place.name}</div>
-                <div style="
-                  font-size: 12px;
-                  color: #666;
-                  margin-top: 4px;
-                  /* Multi-line ellipsis */
-                  display: -webkit-box;
-                  -webkit-line-clamp: 2;
-                  -webkit-box-orient: vertical;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                ">${shortDesc || ''}</div>
-              </div>
+                position: absolute;
+                bottom: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-top: 14px solid #5347AA;
+              "></div>
             </div>
           `;
 
@@ -269,7 +243,9 @@ const MapView = ({
                 }
               }}
               icon={{
-                content: isCurrentPlaceActive ? activeMarkerContent : simpleMarkerContent,
+                content: isCurrentPlaceActive
+                  ? activeMarkerContent
+                  : simpleMarkerContent,
                 anchor: new navermaps.Point(22, 54),
               }}
               zIndex={isCurrentPlaceActive ? 100 : index + 1}

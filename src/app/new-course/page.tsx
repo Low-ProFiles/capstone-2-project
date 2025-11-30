@@ -65,6 +65,16 @@ export default function NewCoursePage() {
       router.push("/login");
       return;
     }
+
+    // --- Start Validation ---
+    if (!title.trim()) {
+      alert("코스 제목을 입력해주세요.");
+      return;
+    }
+    if (!description.trim()) {
+      alert("코스 설명을 입력해주세요.");
+      return;
+    }
     if (!selectedCategory) {
       alert("카테고리를 선택해주세요.");
       return;
@@ -73,6 +83,30 @@ export default function NewCoursePage() {
       alert("지역을 선택해주세요.");
       return;
     }
+    if (!coverImageUrl) {
+      alert("대표 이미지를 업로드해주세요.");
+      return;
+    }
+    if (spots.length < 2) {
+      alert("코스는 최소 2개 이상의 스팟을 포함해야 합니다.");
+      return;
+    }
+
+    for (const spot of spots) {
+      if (!spot.title?.trim()) {
+        alert(`스팟 #${spot.orderNo}의 제목을 입력해주세요.`);
+        return;
+      }
+      if (spot.price == null || spot.price < 0) {
+        alert(`스팟 #${spot.orderNo}의 예상 비용을 0 이상으로 입력해주세요.`);
+        return;
+      }
+      if (spot.stayMinutes == null || spot.stayMinutes < 0) {
+        alert(`스팟 #${spot.orderNo}의 예상 체류 시간을 0분 이상으로 입력해주세요.`);
+        return;
+      }
+    }
+    // --- End Validation ---
 
     try {
       const courseData = {
@@ -238,6 +272,9 @@ export default function NewCoursePage() {
                         </p>
                         <p className="text-sm font-medium text-blue-600">
                           예상 비용: {(spot.price || 0).toLocaleString()}원
+                        </p>
+                        <p className="text-sm font-medium text-green-600">
+                          예상 소요 시간: {spot.stayMinutes || 0}분
                         </p>
                       </div>
                     </div>

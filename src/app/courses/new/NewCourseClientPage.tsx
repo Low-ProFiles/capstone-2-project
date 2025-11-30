@@ -85,6 +85,11 @@ function SpotEditor({
       <p className="text-sm text-gray-600">
         Lat: {spot.lat?.toFixed(4)}, Lng: {spot.lng?.toFixed(4)}
       </p>
+      {spot.stayMinutes != null && spot.stayMinutes > 0 && (
+        <p className="text-sm text-gray-600">
+          예상 체류 시간: {spot.stayMinutes}분
+        </p>
+      )}
       <div>
         <Label htmlFor={`spot-title-${index}`}>Title</Label>
         <Input
@@ -213,9 +218,58 @@ export default function NewCoursePage() {
   };
 
   const handleSubmit = () => {
-    if (!title || !categoryId || spots.length === 0 || !coverImageUrl) {
-      alert("Please fill out all fields and add at least one spot and a cover image.");
+    if (!title.trim()) {
+      alert("코스 제목을 입력해주세요.");
       return;
+    }
+    if (!description.trim()) {
+      alert("코스 설명을 입력해주세요.");
+      return;
+    }
+    if (!categoryId) {
+      alert("카테고리를 선택해주세요.");
+      return;
+    }
+    if (!coverImageUrl) {
+      alert("대표 이미지를 업로드해주세요.");
+      return;
+    }
+    if (durationMinutes <= 0) {
+      alert("예상 소요 시간은 0보다 커야 합니다.");
+      return;
+    }
+    if (estimatedCost <= 0) {
+      alert("예상 비용은 0보다 커야 합니다.");
+      return;
+    }
+    if (spots.length < 2) {
+      alert("코스는 최소 2개 이상의 스팟을 포함해야 합니다.");
+      return;
+    }
+
+    // Validate each spot
+    for (const spot of spots) {
+        if (!spot.title?.trim()) {
+            alert("모든 스팟의 제목을 입력해주세요.");
+            return;
+        }
+        if (!spot.description?.trim()) { // Assuming description can be optional from UI perspective
+            alert(`스팟 #${spot.orderNo}의 설명을 입력해주세요.`);
+            return;
+        }
+        if (!spot.lat || !spot.lng) {
+            alert(`스팟 #${spot.orderNo}의 위치를 지정해주세요.`);
+            return;
+        }
+        if (spot.price == null || spot.price < 0) { // Price can be 0, but not negative
+            alert(`스팟 #${spot.orderNo}의 예상 비용을 0 이상으로 입력해주세요.`);
+            return;
+        }
+        if (spot.stayMinutes == null || spot.stayMinutes < 0) { // StayMinutes can be 0, but not negative
+            alert(`스팟 #${spot.orderNo}의 예상 체류 시간을 0분 이상으로 입력해주세요.`);
+            return;
+        }
+        // Check image is not mandatory for spot
     }
 
     createCourseMutation.mutate(
@@ -231,11 +285,11 @@ export default function NewCoursePage() {
       },
       {
         onSuccess: (data) => {
-          alert("Course created successfully!");
+          alert("코스가 성공적으로 생성되었습니다!");
           router.push(`/courses/${data.id}`);
         },
         onError: (error) => {
-          alert(`Failed to create course: ${error.message}`);
+          alert(`코스 생성에 실패했습니다: ${error.message}`);
         },
       }
     );
@@ -254,6 +308,7 @@ export default function NewCoursePage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., A walk in the park"
+              maxLength={20}
             />
           </div>
           <div>

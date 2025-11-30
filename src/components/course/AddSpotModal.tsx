@@ -49,7 +49,6 @@ export default function AddSpotModal({
   const [map, setMap] = useState<naver.maps.Map | null>(null);
 
   useEffect(() => {
-    // Reset form when modal opens or editingSpot changes
     if (isOpen) {
       if (editingSpot) {
         setTitle(editingSpot.title);
@@ -67,9 +66,11 @@ export default function AddSpotModal({
             : undefined
         );
       } else {
+        // Reset for new spot
         setTitle("");
         setDescription("");
         setPrice(0);
+        setStayMinutes(0);
         setPosition(null);
         setSpotImageUrl(undefined);
       }
@@ -77,8 +78,8 @@ export default function AddSpotModal({
   }, [isOpen, editingSpot]);
 
   const handleMapClick = useCallback((e: naver.maps.PointerEvent) => {
-    const { coord } = e;
-    setPosition({ lat: coord.y, lng: coord.x });
+    const newPos = { lat: e.coord.y, lng: e.coord.x };
+    setPosition(newPos);
   }, []);
 
   useEffect(() => {
@@ -107,7 +108,6 @@ export default function AddSpotModal({
     });
     onClose();
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg">
@@ -130,6 +130,12 @@ export default function AddSpotModal({
               {position && <Marker position={position} />}
             </NaverMap>
           </MapDiv>
+          {position && (
+            <p className="text-sm text-gray-500 mb-2">
+              선택된 위치: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+              {stayMinutes > 0 && `, 예상 체류 시간: ${stayMinutes}분`}
+            </p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="spot-title">장소 이름</Label>
             <Input
@@ -169,11 +175,6 @@ export default function AddSpotModal({
             currentImageUrl={spotImageUrl}
             label="장소 이미지"
           />
-          {position && (
-            <div className="text-sm text-gray-500">
-              선택된 위치: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-            </div>
-          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>
