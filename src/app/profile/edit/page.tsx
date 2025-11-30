@@ -22,7 +22,7 @@ import {
 } from "@/lib/api"; // Import getUserProfile
 import ImageUpload from "@/components/common/ImageUpload";
 
-import { TriangleAlert, Loader2 } from "lucide-react"; // Import Loader2
+import { TriangleAlert, Loader2, LogIn } from "lucide-react"; // Import Loader2
 
 export default function ProfileEditPage() {
   const { token } = useAuth();
@@ -88,15 +88,13 @@ export default function ProfileEditPage() {
   if (!token) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
-        <TriangleAlert className="h-12 w-12 text-yellow-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">로그인이 필요합니다</h2>
-        <p className="mb-6 text-gray-600">
-          이 페이지에 접근하려면 먼저 로그인해주세요.
-        </p>
-        <Link href="/login">
-          <Button>로그인 페이지로 이동</Button>
-        </Link>
-      </div>
+                <LogIn className="h-12 w-12 text-gray-400 mb-4" />
+                <h2 className="text-2xl font-bold mb-2">로그인이 필요합니다</h2>
+                <p className="mb-6 text-gray-600">이 페이지에 접근하려면 먼저 로그인해주세요.</p>
+                <Link href="/login">
+                  <Button>로그인 페이지로 이동</Button>
+                </Link>
+              </div>
     );
   }
 

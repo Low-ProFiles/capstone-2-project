@@ -15,58 +15,107 @@ import { useEffect, useState } from "react"; // Import useEffect and useState
 import { getUserProfile } from "@/lib/api"; // Import getUserProfile API
 import type { UserProfileDto } from "@/types"; // Import UserProfileDto type
 
-import { TriangleAlert, Loader2 } from "lucide-react"; // Import Loader2
+import { TriangleAlert, Loader2, LogIn } from "lucide-react"; // Import Loader2
+
+
 
 export default function ProfilePage() {
+
   const { user, token } = useAuth(); // Get user and token from auth context
 
+
+
   const [userProfile, setUserProfile] = useState<UserProfileDto | null>(null);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
 
+
+
   useEffect(() => {
+
     if (token) {
+
       const fetchProfile = async () => {
+
         try {
+
           setLoading(true);
+
           const profile = await getUserProfile(token);
+
           setUserProfile(profile);
+
         } catch (err: unknown) {
+
           setError((err as Error).message);
+
         } finally {
+
           setLoading(false);
+
         }
+
       };
+
       fetchProfile();
+
     } else {
+
       setLoading(false); // Not logged in, stop loading
+
     }
+
   }, [token]);
 
+
+
   if (loading) {
+
     return (
+
       <div className="flex justify-center items-center min-h-screen">
+
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+
       </div>
+
     );
+
   }
+
+
 
   if (!token) {
+
     return (
+
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
-        <TriangleAlert className="h-12 w-12 text-yellow-500 mb-4" />
+
+        <LogIn className="h-12 w-12 text-gray-400 mb-4" />
+
         <h2 className="text-2xl font-bold mb-2">로그인이 필요합니다</h2>
-        <p className="mb-6 text-gray-600">
-          이 페이지에 접근하려면 먼저 로그인해주세요.
-        </p>
+
+        <p className="mb-6 text-gray-600">이 페이지에 접근하려면 먼저 로그인해주세요.</p>
+
         <Link href="/login">
+
           <Button>로그인 페이지로 이동</Button>
+
         </Link>
+
       </div>
+
     );
+
   }
 
+
+
   console.log(error, "error");
+
+
 
   if (error) {
     return (
