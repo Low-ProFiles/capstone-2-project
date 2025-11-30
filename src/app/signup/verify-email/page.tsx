@@ -18,10 +18,12 @@ import { apiFetch } from '@/lib/api';
 export default function VerifyEmailPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const [serverError, setServerError] = useState('');
   const router = useRouter();
 
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError('');
     try {
       // This uses the /api/auth/verify endpoint from ApiAuthController
       const responseMessage = await apiFetch('/api/auth/verify', {
@@ -32,9 +34,9 @@ export default function VerifyEmailPage() {
       router.push('/login');
     } catch (err) {
       if (err instanceof Error) {
-        alert(err.message || '인증에 실패했습니다. 이메일과 코드를 다시 확인해주세요.');
+        setServerError(err.message || '인증에 실패했습니다. 이메일과 코드를 다시 확인해주세요.');
       } else {
-        alert('알 수 없는 오류가 발생했습니다.');
+        setServerError('알 수 없는 오류가 발생했습니다.');
       }
     }
   };
@@ -49,6 +51,7 @@ export default function VerifyEmailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {serverError && <p className="text-sm text-red-500 text-center mb-4">{serverError}</p>}
           <form onSubmit={handleVerification} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">이메일</Label>

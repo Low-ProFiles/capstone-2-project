@@ -60,12 +60,6 @@ export const login = (credentials: Login): Promise<Token> =>
     body: JSON.stringify(credentials),
   });
 
-export const kakaoLogin = (code: string): Promise<Token> =>
-  apiFetch(`/api/auth/login/kakao`, { // 참고: 이 엔드포인트는 백엔드에 추가 구현이 필요합니다.
-    method: "POST",
-    body: JSON.stringify({ code }),
-  });
-
 export const setNickname = (nickname: string, token: string): Promise<void> =>
   apiFetch(`/auth/nickname`, {
     method: "POST",

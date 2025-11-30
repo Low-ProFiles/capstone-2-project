@@ -25,6 +25,7 @@ export default function SignupPage() {
   const [passwordError, setPasswordError] = useState(""); // Added passwordError state
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
+  const [serverError, setServerError] = useState(""); // For server-side errors
   const { signup } = useAuth();
   const router = useRouter();
 
@@ -47,15 +48,16 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(""); // Reset server error on new submission
 
     if (!validatePassword(password)) return; // Client-side password length validation
 
     if (password !== passwordConfirm) {
-      alert("비밀번호가 일치하지 않습니다.");
+      setPasswordError("비밀번호가 일치하지 않습니다."); // Use state for mismatch error
       return;
     }
     if (!termsAgreed || !privacyAgreed) {
-      alert("이용약관과 개인정보 처리방침에 모두 동의해야 합니다.");
+      setServerError("이용약관과 개인정보 처리방침에 모두 동의해야 합니다.");
       return;
     }
     try {
@@ -66,9 +68,9 @@ export default function SignupPage() {
       router.push("/signup/verify-email");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        alert(err.message || "회원가입에 실패했습니다.");
+        setServerError(err.message || "회원가입에 실패했습니다.");
       } else {
-        alert("알 수 없는 오류가 발생했습니다.");
+        setServerError("알 수 없는 오류가 발생했습니다.");
       }
     }
   };
@@ -80,7 +82,6 @@ export default function SignupPage() {
     !password ||
     !passwordConfirm ||
     password.length < 8 || // Password length check
-    password !== passwordConfirm || // Password mismatch check
     !termsAgreed ||
     !privacyAgreed ||
     !!passwordError; // Disable if there's a password format error
@@ -93,6 +94,7 @@ export default function SignupPage() {
           <CardDescription>계정을 만들려면 정보를 입력하세요.</CardDescription>
         </CardHeader>
         <CardContent>
+          {serverError && <p className="text-sm text-red-500 text-center mb-4">{serverError}</p>}
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nickname">닉네임</Label>

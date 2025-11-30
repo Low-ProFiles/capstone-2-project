@@ -33,6 +33,8 @@ const HomePageClient = () => {
 
   const [isSheetReady, setIsSheetReady] = useState(false);
 
+  const [isClosing, setIsClosing] = useState(false);
+
   const [mapCenter, setMapCenter] = useState({ lat: 37.228, lng: 127.18654 });
 
   useEffect(() => {
@@ -69,6 +71,8 @@ const HomePageClient = () => {
 
     setIsSheetReady(false);
 
+    setIsClosing(true);
+
     // Update URL to remove query param
 
     router.replace(`/`, { scroll: false });
@@ -77,6 +81,12 @@ const HomePageClient = () => {
   // Effect to handle opening sheet from URL query param
   useEffect(() => {
     const courseIdFromQuery = searchParams.get("courseId");
+    if (isClosing) {
+      if (!courseIdFromQuery) {
+        setIsClosing(false);
+      }
+      return;
+    }
     if (courseIdFromQuery && displayCourses.length > 0 && !selectedCourseId) {
       const courseToSelect = displayCourses.find(
         (c) => c.id === courseIdFromQuery
@@ -92,7 +102,13 @@ const HomePageClient = () => {
         handleMarkerClick(marker);
       }
     }
-  }, [searchParams, displayCourses, selectedCourseId, handleMarkerClick]); // Rerun when courses are loaded
+  }, [
+    searchParams,
+    displayCourses,
+    selectedCourseId,
+    handleMarkerClick,
+    isClosing,
+  ]); // Rerun when courses are loaded
 
   return (
     <div className="flex flex-col h-full w-full">
