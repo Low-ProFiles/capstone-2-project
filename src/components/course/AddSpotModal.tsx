@@ -38,8 +38,8 @@ export default function AddSpotModal({
   const navermaps = useNavermaps();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(0);
-  const [stayMinutes, setStayMinutes] = useState(0);
+  const [price, setPrice] = useState("");
+  const [stayMinutes, setStayMinutes] = useState("");
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
     null
   );
@@ -53,8 +53,8 @@ export default function AddSpotModal({
       if (editingSpot) {
         setTitle(editingSpot.title);
         setDescription(editingSpot.description || "");
-        setPrice(editingSpot.price || 0);
-        setStayMinutes(editingSpot.stayMinutes || 0);
+        setPrice(String(editingSpot.price || ""));
+        setStayMinutes(String(editingSpot.stayMinutes || ""));
         if (editingSpot.lat && editingSpot.lng) {
           setPosition({ lat: editingSpot.lat, lng: editingSpot.lng });
         } else {
@@ -69,8 +69,8 @@ export default function AddSpotModal({
         // Reset for new spot
         setTitle("");
         setDescription("");
-        setPrice(0);
-        setStayMinutes(0);
+        setPrice("");
+        setStayMinutes("");
         setPosition(null);
         setSpotImageUrl(undefined);
       }
@@ -100,17 +100,28 @@ export default function AddSpotModal({
     onSave({
       title,
       description,
-      price,
-      stayMinutes,
+      price: Number(price) || 0,
+      stayMinutes: Number(stayMinutes) || 0,
       lat: position.lat,
       lng: position.lng,
       images: spotImageUrl ? [spotImageUrl] : [],
     });
     onClose();
   };
+
+  const handleNumericChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const { value } = e.target;
+    if (/^[0-9]*$/.test(value)) {
+      setter(value);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-lg">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editingSpot ? "장소 수정" : "새로운 장소 추가"}
@@ -133,7 +144,7 @@ export default function AddSpotModal({
           {position && (
             <p className="text-sm text-gray-500 mb-2">
               선택된 위치: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-              {stayMinutes > 0 && `, 예상 체류 시간: ${stayMinutes}분`}
+              {Number(stayMinutes) > 0 && `, 예상 체류 시간: ${stayMinutes}분`}
             </p>
           )}
           <div className="space-y-2">
@@ -156,18 +167,20 @@ export default function AddSpotModal({
             <Label htmlFor="spot-price">예상 비용 (원)</Label>
             <Input
               id="spot-price"
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
+              onChange={(e) => handleNumericChange(e, setPrice)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="spot-stay-minutes">예상 체류 시간 (분)</Label>
             <Input
               id="spot-stay-minutes"
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={stayMinutes}
-              onChange={(e) => setStayMinutes(Number(e.target.value))}
+              onChange={(e) => handleNumericChange(e, setStayMinutes)}
             />
           </div>
           <ImageUpload

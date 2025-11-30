@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Container as MapDiv, NaverMap, Marker, useNavermaps } from "react-naver-maps";
+import {
+  Container as MapDiv,
+  NaverMap,
+  Marker,
+  useNavermaps,
+} from "react-naver-maps";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +23,12 @@ import { useRouter } from "next/navigation";
 import type { SpotReq } from "@/types";
 import ImageUpload from "@/components/common/ImageUpload";
 
+// UI-specific type for the spot editor
+type UISpot = Omit<SpotReq, "price" | "stayMinutes"> & {
+  price: string;
+  stayMinutes: string;
+};
+
 // A component to manage a single spot's details
 function SpotEditor({
   spot,
@@ -31,13 +42,9 @@ function SpotEditor({
   onMouseEnter,
   onMouseLeave,
 }: {
-  spot: SpotReq;
+  spot: UISpot;
   index: number;
-  onSpotChange: (
-    index: number,
-    field: keyof SpotReq,
-    value: string | number
-  ) => void;
+  onSpotChange: (index: number, field: keyof UISpot, value: string) => void;
   onDelete: (index: number) => void;
   onMove: (index: number, direction: "up" | "down") => void;
   isFirst: boolean;
@@ -46,6 +53,16 @@ function SpotEditor({
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) {
+  const handleNumericChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "price" | "stayMinutes"
+  ) => {
+    const { value } = e.target;
+    if (/^[0-9]*$/.test(value)) {
+      onSpotChange(index, field, value);
+    }
+  };
+
   return (
     <div
       className={`p-4 border rounded-lg space-y-2 ${
@@ -85,7 +102,7 @@ function SpotEditor({
       <p className="text-sm text-gray-600">
         Lat: {spot.lat?.toFixed(4)}, Lng: {spot.lng?.toFixed(4)}
       </p>
-      {spot.stayMinutes != null && spot.stayMinutes > 0 && (
+      {Number(spot.stayMinutes) > 0 && (
         <p className="text-sm text-gray-600">
           예상 체류 시간: {spot.stayMinutes}분
         </p>
@@ -108,22 +125,24 @@ function SpotEditor({
           placeholder="A brief note about this spot"
         />
       </div>
-       <div>
+      <div>
         <Label htmlFor={`spot-price-${index}`}>Price</Label>
         <Input
           id={`spot-price-${index}`}
-          type="number"
-          value={spot.price || 0}
-          onChange={(e) => onSpotChange(index, "price", Number(e.target.value))}
+          type="text" // Use text to allow empty string
+          inputMode="numeric" // Hint for numeric keyboard on mobile
+          value={spot.price}
+          onChange={(e) => handleNumericChange(e, "price")}
         />
       </div>
       <div>
         <Label htmlFor={`spot-stay-${index}`}>Stay Minutes</Label>
         <Input
           id={`spot-stay-${index}`}
-          type="number"
-          value={spot.stayMinutes || 0}
-          onChange={(e) => onSpotChange(index, "stayMinutes", Number(e.target.value))}
+          type="text" // Use text to allow empty string
+          inputMode="numeric"
+          value={spot.stayMinutes}
+          onChange={(e) => handleNumericChange(e, "stayMinutes")}
         />
       </div>
     </div>
@@ -145,7 +164,7 @@ export default function NewCoursePage() {
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [estimatedCost, setEstimatedCost] = useState(10000);
   const [tagsString, setTagsString] = useState("");
-  const [spots, setSpots] = useState<SpotReq[]>([]);
+  const [spots, setSpots] = useState<UISpot[]>([]);
   const [selectedSpotIndex, setSelectedSpotIndex] = useState<number | null>(
     null
   );
@@ -153,19 +172,22 @@ export default function NewCoursePage() {
   const navermaps = useNavermaps();
   const [map, setMap] = useState<naver.maps.Map | null>(null);
 
-  const handleMapClick = useCallback((e: naver.maps.PointerEvent) => {
-    const newSpot: SpotReq = {
-      lat: e.coord.y,
-      lng: e.coord.x,
-      orderNo: spots.length + 1,
-      title: `Spot ${spots.length + 1}`, // Placeholder title
-      description: "",
-      images: [],
-      stayMinutes: 0,
-      price: 0,
-    };
-    setSpots((prevSpots) => [...prevSpots, newSpot]);
-  }, [spots]);
+  const handleMapClick = useCallback(
+    (e: naver.maps.PointerEvent) => {
+      const newSpot: UISpot = {
+        lat: e.coord.y,
+        lng: e.coord.x,
+        orderNo: spots.length + 1,
+        title: `Spot ${spots.length + 1}`, // Placeholder title
+        description: "",
+        images: [],
+        stayMinutes: "",
+        price: "",
+      };
+      setSpots((prevSpots) => [...prevSpots, newSpot]);
+    },
+    [spots]
+  );
 
   useEffect(() => {
     if (!map || !navermaps) return;
@@ -179,8 +201,8 @@ export default function NewCoursePage() {
 
   const handleSpotChange = (
     index: number,
-    field: keyof SpotReq,
-    value: string | number
+    field: keyof UISpot,
+    value: string
   ) => {
     const newSpots = [...spots];
     newSpots[index] = { ...newSpots[index], [field]: value };
@@ -247,29 +269,40 @@ export default function NewCoursePage() {
       return;
     }
 
+    // Convert UI state to API state before validation and submission
+    const spotsForApi: SpotReq[] = spots.map((spot) => ({
+      ...spot,
+      price: Number(spot.price) || 0,
+      stayMinutes: Number(spot.stayMinutes) || 0,
+    }));
+
     // Validate each spot
-    for (const spot of spots) {
-        if (!spot.title?.trim()) {
-            alert("모든 스팟의 제목을 입력해주세요.");
-            return;
-        }
-        if (!spot.description?.trim()) { // Assuming description can be optional from UI perspective
-            alert(`스팟 #${spot.orderNo}의 설명을 입력해주세요.`);
-            return;
-        }
-        if (!spot.lat || !spot.lng) {
-            alert(`스팟 #${spot.orderNo}의 위치를 지정해주세요.`);
-            return;
-        }
-        if (spot.price == null || spot.price < 0) { // Price can be 0, but not negative
-            alert(`스팟 #${spot.orderNo}의 예상 비용을 0 이상으로 입력해주세요.`);
-            return;
-        }
-        if (spot.stayMinutes == null || spot.stayMinutes < 0) { // StayMinutes can be 0, but not negative
-            alert(`스팟 #${spot.orderNo}의 예상 체류 시간을 0분 이상으로 입력해주세요.`);
-            return;
-        }
-        // Check image is not mandatory for spot
+    for (const spot of spotsForApi) {
+      if (!spot.title?.trim()) {
+        alert("모든 스팟의 제목을 입력해주세요.");
+        return;
+      }
+      if (!spot.description?.trim()) {
+        // Assuming description can be optional from UI perspective
+        alert(`스팟 #${spot.orderNo}의 설명을 입력해주세요.`);
+        return;
+      }
+      if (!spot.lat || !spot.lng) {
+        alert(`스팟 #${spot.orderNo}의 위치를 지정해주세요.`);
+        return;
+      }
+      if (spot.price < 0) {
+        // Price can be 0, but not negative
+        alert(`스팟 #${spot.orderNo}의 예상 비용을 0 이상으로 입력해주세요.`);
+        return;
+      }
+      if (spot.stayMinutes < 0) {
+        // StayMinutes can be 0, but not negative
+        alert(
+          `스팟 #${spot.orderNo}의 예상 체류 시간을 0분 이상으로 입력해주세요.`
+        );
+        return;
+      }
     }
 
     createCourseMutation.mutate(
@@ -280,8 +313,11 @@ export default function NewCoursePage() {
         coverImageUrl,
         regionCode,
         regionName,
-        tags: tagsString.split(',').map(t => t.trim()).filter(t => t),
-        spots,
+        tags: tagsString
+          .split(",")
+          .map((t) => t.trim())
+          .filter((t) => t),
+        spots: spotsForApi,
       },
       {
         onSuccess: (data) => {
@@ -342,10 +378,14 @@ export default function NewCoursePage() {
             </Select>
           </div>
           <div>
-              <Label>Cover Image</Label>
-              <ImageUpload onUploadSuccess={setCoverImageUrl} currentImageUrl={coverImageUrl} label="Upload Cover Image" />
+            <Label>Cover Image</Label>
+            <ImageUpload
+              onUploadSuccess={setCoverImageUrl}
+              currentImageUrl={coverImageUrl}
+              label="Upload Cover Image"
+            />
           </div>
-           <div>
+          <div>
             <Label htmlFor="duration">Duration (minutes)</Label>
             <Input
               id="duration"
@@ -363,7 +403,7 @@ export default function NewCoursePage() {
               onChange={(e) => setEstimatedCost(Number(e.target.value))}
             />
           </div>
-           <div>
+          <div>
             <Label htmlFor="tags">Tags (comma-separated)</Label>
             <Input
               id="tags"
