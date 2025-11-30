@@ -9,10 +9,7 @@ export default function CustomNavermapsProvider({
   children: ReactNode;
 }) {
   return (
-    <NavermapsProvider
-      ncpKeyId={process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID!}
-      submodules={["geocoding"]}
-    >
+    <NavermapsProvider ncpKeyId={process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID!}>
       {children}
     </NavermapsProvider>
   );
