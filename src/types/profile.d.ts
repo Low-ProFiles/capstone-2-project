@@ -1,4 +1,5 @@
 export interface UserProfileDto {
+  id: string;
   email: string;
   nickname: string;
   displayName: string;

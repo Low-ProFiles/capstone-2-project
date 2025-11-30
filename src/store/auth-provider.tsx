@@ -5,17 +5,10 @@ import { login as apiLogin, signup as apiSignup, getUserProfile } from '@/lib/ap
 import type { Login, SignUp, UserProfileDto } from '@/types';
 import { useAuthStore } from './auth.store';
 
-// Re-defining for clarity, though it comes from the store
-interface DecodedUser {
-  sub: string;
-    [key: string]: unknown;
-}
-
 // Define types for the auth context
 interface AuthContextType {
   token: string | null;
-  decodedUser: DecodedUser | null; // from JWT
-  userProfile: UserProfileDto | null; // from API
+  userProfile: UserProfileDto | null;
   isAuthenticated: boolean;
   login: (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
   signup: (userData: SignUp) => Promise<string>;
@@ -32,11 +25,11 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const { token, decodedUser, userProfile, setToken, setUserProfile, logout: storeLogout } = useAuthStore();
+  const { token, userProfile, setToken, setUserProfile, logout: storeLogout } = useAuthStore();
 
   useEffect(() => {
-    // If we have a token and decoded user, but no fetched profile yet
-    if (token && decodedUser && !userProfile) {
+    // If we have a token but no fetched profile yet
+    if (token && !userProfile) {
       const fetchUser = async () => {
         try {
           const profile = await getUserProfile(token);
@@ -48,7 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       };
       fetchUser();
     }
-  }, [token, decodedUser, userProfile, setUserProfile, storeLogout]);
+  }, [token, userProfile, setUserProfile, storeLogout]);
 
   const login = async (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
     try {
@@ -83,7 +76,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, decodedUser, userProfile, isAuthenticated, login, signup, logout, setAuthToken }}>
+    <AuthContext.Provider value={{ token, userProfile, isAuthenticated, login, signup, logout, setAuthToken }}>
       {children}
     </AuthContext.Provider>
   );
@@ -97,4 +90,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
