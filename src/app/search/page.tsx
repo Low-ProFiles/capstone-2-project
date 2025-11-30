@@ -44,7 +44,7 @@ export default function SearchPage() {
         q: q || undefined,
         region: region || undefined,
         categoryId: categoryId || undefined,
-        maxCost: maxCost ? Number(maxCost) : undefined,
+        maxCost: maxCost !== "" ? Number(maxCost) : undefined,
       };
       const searchResults = await getCourses(params);
       setResults(searchResults.content);
