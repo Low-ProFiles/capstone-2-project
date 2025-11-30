@@ -11,7 +11,10 @@ import { useAuth } from "@/store/auth-provider";
 
 // Dynamically import CourseMap with ssr: false
 const CourseMap = dynamic(
-  () => import("../components/domain/course/CourseMap").then((mod) => mod.CourseMap),
+  () =>
+    import("../components/domain/course/CourseMap").then(
+      (mod) => mod.CourseMap
+    ),
   {
     ssr: false,
     loading: () => (
@@ -40,12 +43,14 @@ const HomePageClient = () => {
 
   // Effect to handle token from URL query param
   useEffect(() => {
-    const token = searchParams.get('token');
+    const token = searchParams.get("token");
     if (token) {
+      console.log("Token from URL:", token, "Type:", typeof token);
       setAuthToken(token);
-      router.replace('/', { scroll: false });
+      router.replace("/", { scroll: false });
     }
-  }, [searchParams, setAuthToken, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchCourses({});
