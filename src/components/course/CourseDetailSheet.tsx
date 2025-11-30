@@ -62,7 +62,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
     clearCourseDetails,
   } = useCourseStore();
   const { token } = useAuthStore();
-  const { user } = useAuth();
+  const { decodedUser } = useAuth();
 
   const [isLikedState, setIsLikedState] = useState(false);
   const [likeCountState, setLikeCountState] = useState(0);
@@ -73,7 +73,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
   const router = useRouter();
 
   const isCreator =
-    user && courseDetails && user.sub === courseDetails.creatorId;
+    decodedUser && courseDetails && decodedUser.sub === courseDetails.creatorId;
 
   useEffect(() => {
     if (courseDetails) {

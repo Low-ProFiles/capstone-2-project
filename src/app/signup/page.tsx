@@ -68,7 +68,11 @@ export default function SignupPage() {
       router.push("/signup/verify-email");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setServerError(err.message || "회원가입에 실패했습니다.");
+        if (err.message.includes('Duplicate entry') && err.message.includes('users.UK2ty1xmrrgtn89xt7kyxx6ta7h')) {
+          setServerError("이미 사용중인 닉네임입니다. 다른 닉네임을 사용해주세요.");
+        } else {
+          setServerError(err.message || "회원가입에 실패했습니다.");
+        }
       } else {
         setServerError("알 수 없는 오류가 발생했습니다.");
       }

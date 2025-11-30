@@ -1,29 +1,26 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode } from 'react';
-import { login as apiLogin, signup as apiSignup } from '@/lib/api';
-import type { Login, SignUp } from '@/types';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import { login as apiLogin, signup as apiSignup, getUserProfile } from '@/lib/api';
+import type { Login, SignUp, UserProfileDto } from '@/types';
 import { useAuthStore } from './auth.store';
 
-// Define a type for the decoded JWT payload
+// Re-defining for clarity, though it comes from the store
 interface DecodedUser {
-  sub: string; // Subject (usually user ID)
-  email: string;
-  nickname: string;
-  roles: string[];
-  exp: number; // Expiration time
-  iat: number; // Issued at time
+  sub: string;
+    [key: string]: unknown;
 }
 
 // Define types for the auth context
 interface AuthContextType {
   token: string | null;
-  user: DecodedUser | null; // Add user to context type
+  decodedUser: DecodedUser | null; // from JWT
+  userProfile: UserProfileDto | null; // from API
   isAuthenticated: boolean;
   login: (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => Promise<void>;
-  signup: (userData: SignUp) => Promise<string>; // Modified return type
+  signup: (userData: SignUp) => Promise<string>;
   logout: () => void;
-  setAuthToken: (newToken: string) => void;
+  setAuthToken: (newToken: string | null) => void;
 }
 
 // Create the context with a default undefined value
@@ -35,7 +32,23 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const { token, user, setToken, logout: storeLogout } = useAuthStore();
+  const { token, decodedUser, userProfile, setToken, setUserProfile, logout: storeLogout } = useAuthStore();
+
+  useEffect(() => {
+    // If we have a token and decoded user, but no fetched profile yet
+    if (token && decodedUser && !userProfile) {
+      const fetchUser = async () => {
+        try {
+          const profile = await getUserProfile(token);
+          setUserProfile(profile);
+        } catch (error) {
+          console.error('Failed to fetch user profile with token, logging out.', error);
+          storeLogout(); // Log out if the token is invalid for fetching a profile
+        }
+      };
+      fetchUser();
+    }
+  }, [token, decodedUser, userProfile, setUserProfile, storeLogout]);
 
   const login = async (credentials: Login, onSuccess?: () => void, onFailure?: (error: Error) => void) => {
     try {
@@ -49,14 +62,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Modified signup to return the string message from the API
   const signup = async (userData: SignUp): Promise<string> => {
     try {
       const message = await apiSignup(userData);
-      return message; // Return the message
+      return message;
     } catch (error) {
       console.error('Signup failed:', error);
-      throw error; // Re-throw to allow calling component to handle
+      throw error;
     }
   };
 
@@ -64,14 +76,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     storeLogout();
   };
 
-  const setAuthToken = (newToken: string) => {
+  const setAuthToken = (newToken: string | null) => {
     setToken(newToken);
   };
 
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated, login, signup, logout, setAuthToken }}>
+    <AuthContext.Provider value={{ token, decodedUser, userProfile, isAuthenticated, login, signup, logout, setAuthToken }}>
       {children}
     </AuthContext.Provider>
   );
