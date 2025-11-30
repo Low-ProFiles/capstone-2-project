@@ -7,6 +7,7 @@ import { useCourseStore } from "@/store/course.store";
 import type { Place } from "@/lib/types";
 import CourseDetailSheet from "@/components/course/CourseDetailSheet";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/store/auth-provider";
 
 // Dynamically import CourseMap with ssr: false
 const CourseMap = dynamic(
@@ -23,8 +24,8 @@ const CourseMap = dynamic(
 
 const HomePageClient = () => {
   const router = useRouter();
-
   const searchParams = useSearchParams();
+  const { setAuthToken } = useAuth();
 
   const { coursesPage, error, fetchCourses, fetchCourseDetails } =
     useCourseStore();
@@ -36,6 +37,15 @@ const HomePageClient = () => {
   const [isClosing, setIsClosing] = useState(false);
 
   const [mapCenter, setMapCenter] = useState({ lat: 37.228, lng: 127.18654 });
+
+  // Effect to handle token from URL query param
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setAuthToken(token);
+      router.replace('/', { scroll: false });
+    }
+  }, [searchParams, setAuthToken, router]);
 
   useEffect(() => {
     fetchCourses({});
