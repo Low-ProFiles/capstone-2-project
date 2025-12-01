@@ -5,6 +5,8 @@ export type Place = {
   lat: number;
   lng: number;
   imageUrl?: string;
+  spotCount?: number;
+  orderNo?: number;
   estimatedTime?: string; // 예상 시간
   budget?: string; // 예산
   recommendation?: string; // 추천 메뉴/하이라이트

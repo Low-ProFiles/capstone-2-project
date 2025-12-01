@@ -9,6 +9,7 @@ import {
   RecommendationDto,
 } from "@/lib/api";
 import { X, Heart, Edit, Trash2 } from "lucide-react";
+import Image from "next/image";
 import type { SpotRes, CourseSummary } from "@/types/course";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -24,13 +25,25 @@ interface CourseDetailSheetProps {
 }
 
 const SpotCard = ({ spot }: { spot: SpotRes }) => (
-  <div className="border p-3 rounded-lg bg-gray-50">
-    <h4 className="font-semibold">
-      {spot.orderNo}. {spot.title}
-    </h4>
-    {spot.description && (
-      <p className="text-sm text-gray-600 mt-1">{spot.description}</p>
+  <div className="border p-3 rounded-lg bg-gray-50 flex items-center space-x-4">
+    {spot.images && spot.images.length > 0 && (
+      <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden">
+        <Image
+          src={spot.images[0]}
+          alt={spot.title}
+          fill
+          style={{ objectFit: "cover" }}
+        />
+      </div>
     )}
+    <div>
+      <h4 className="font-semibold">
+        {spot.orderNo}. {spot.title}
+      </h4>
+      {spot.description && (
+        <p className="text-sm text-gray-600 mt-1">{spot.description}</p>
+      )}
+    </div>
   </div>
 );
 
@@ -150,6 +163,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
       name: spot.title,
       lat: spot.lat || 0,
       lng: spot.lng || 0,
+      orderNo: spot.orderNo,
     })) || [];
 
   const mapCenter =
@@ -233,9 +247,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
                     {isCreator && (
                       <>
                         <button
-                          onClick={() =>
-                            router.push(`/${courseId}/edit`)
-                          }
+                          onClick={() => router.push(`/${courseId}/edit`)}
                           className="flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200"
                         >
                           <Edit className="h-4 w-4" />
