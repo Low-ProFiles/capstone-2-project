@@ -150,10 +150,7 @@ const MapView = ({
               transition: all 0.2s ease;
               transform: scale(1.1);
             ">
-              ${place.orderNo && place.orderNo > 0 ? `
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(0, 0, 0, 0.4);"></div>
-                <span style="position: relative; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 4px black;">${place.orderNo}</span>
-              ` : ''}
+              ${place.orderNo && place.orderNo > 0 ? `<span style="position: relative; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 4px black;">${place.orderNo}</span>` : ''}
               <div style="
                 position: absolute;
                 bottom: -10px;
@@ -187,10 +184,7 @@ const MapView = ({
               onmouseover="this.style.transform='scale(1.1)'; this.style.zIndex='10';"
               onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';"
             >
-              ${place.orderNo && place.orderNo > 0 ? `
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background-color: rgba(0, 0, 0, 0.4);"></div>
-                <span style="position: relative; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 4px black;">${place.orderNo}</span>
-              ` : ''}
+              ${place.orderNo && place.orderNo > 0 ? `<span style="position: relative; color: white; font-size: 16px; font-weight: bold; text-shadow: 0 0 4px black;">${place.orderNo}</span>` : ''}
               <div style="
                 position: absolute;
                 bottom: -10px;
