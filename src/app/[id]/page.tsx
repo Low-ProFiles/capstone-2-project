@@ -72,17 +72,29 @@ export default async function CoursePage({ params }: any) {
                 {course.spots.map((spot) => (
                   <div
                     key={spot.orderNo}
-                    className="p-4 border rounded-lg bg-gray-50"
+                    className="p-4 border rounded-lg bg-gray-50 flex items-start space-x-6"
                   >
-                    <h4 className="text-lg font-bold">
-                      {spot.orderNo}. {spot.title}
-                    </h4>
-                    <p className="text-md text-gray-700 mt-1">
-                      {spot.description}
-                    </p>
-                    <div className="text-sm text-gray-500 mt-2">
-                      <span>예상 비용: {spot.price.toLocaleString()}원</span> |
-                      <span> 예상 시간: {spot.stayMinutes}분</span>
+                    {spot.images && spot.images.length > 0 && (
+                      <div className="relative w-36 h-36 flex-shrink-0 rounded-md overflow-hidden">
+                        <Image
+                          src={spot.images[0]}
+                          alt={spot.title}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex-grow">
+                      <h4 className="text-lg font-bold">
+                        {spot.orderNo}. {spot.title}
+                      </h4>
+                      <p className="text-md text-gray-700 mt-1">
+                        {spot.description}
+                      </p>
+                      <div className="text-sm text-gray-500 mt-2">
+                        <span>예상 비용: {spot.price.toLocaleString()}원</span>{" "}
+                        |<span> 예상 시간: {spot.stayMinutes}분</span>
+                      </div>
                     </div>
                   </div>
                 ))}
