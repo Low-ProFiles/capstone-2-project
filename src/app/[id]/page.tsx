@@ -16,6 +16,7 @@ export default async function CoursePage({ params }: any) {
         name: spot.title,
         lat: spot.lat || 0,
         lng: spot.lng || 0,
+        orderNo: spot.orderNo,
       })) || [];
 
     const mapCenter =
