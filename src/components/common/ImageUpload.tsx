@@ -16,52 +16,52 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, currentImageUrl, label = "이미지 업로드" }) => {
-  const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl); // Clean up previous preview URL
     }
-    if (event.target.files && event.target.files[0]) {
-      const selectedFile = event.target.files[0];
-      setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
-      setError(null);
-    } else {
-      setFile(null);
-      setPreviewUrl(null);
-    }
-  };
-
-  const handleUpload = async () => {
+    
+    const file = event.target.files && event.target.files[0];
     if (!file) {
-      setError("업로드할 파일을 선택해주세요.");
+      setPreviewUrl(null);
       return;
     }
+
+    setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
+    
     if (!token) {
       setError("로그인이 필요합니다.");
       return;
     }
 
     setLoading(true);
-    setError(null);
-
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
       
-      const result = await uploadFile(formData, token); // Assuming uploadFile returns { url: string }
+      const result = await uploadFile(formData, token);
       onUploadSuccess(result.url);
-      setFile(null); // Clear selected file after successful upload
     } catch (err: unknown) {
       setError(`파일 업로드 실패: ${(err as Error).message}`);
+      // Clear preview if upload fails
+      if(previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
     } finally {
       setLoading(false);
+      // Clear the file input so the same file can be selected again
+      if(fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -76,39 +76,37 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onUploadSuccess, currentImage
           onChange={handleFileChange}
           ref={fileInputRef}
           className="hidden" // Hide default input
+          disabled={loading}
         />
         <Button 
           type="button" 
           variant="outline" 
           onClick={() => fileInputRef.current?.click()}
           className="flex-grow"
+          disabled={loading}
         >
-          <UploadCloud className="h-4 w-4 mr-2" />
-          {file ? file.name : (currentImageUrl ? "이미지 변경" : "파일 선택")}
-        </Button>
-        <Button 
-          type="button" 
-          onClick={handleUpload} 
-          disabled={!file || loading}
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "업로드"}
+          {loading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <UploadCloud className="h-4 w-4 mr-2" />
+          )}
+          {loading ? "업로드 중..." : (currentImageUrl || previewUrl ? "이미지 변경" : "파일 선택")}
         </Button>
       </div>
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {(currentImageUrl || previewUrl) && (
         <div className="mt-2 space-y-2">
-          {currentImageUrl && !previewUrl && (
+          {previewUrl ? (
+             <div>
+              <p className="text-sm text-gray-500">새 이미지 미리보기:</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt="Preview" className="w-24 h-24 object-cover rounded-md mt-1" />
+            </div>
+          ) : currentImageUrl && (
             <div>
               <p className="text-sm text-gray-500">현재 이미지:</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={currentImageUrl} alt="Current" className="w-24 h-24 object-cover rounded-md mt-1" />
-            </div>
-          )}
-          {previewUrl && (
-            <div>
-              <p className="text-sm text-gray-500">새 이미지 미리보기:</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewUrl} alt="Preview" className="w-24 h-24 object-cover rounded-md mt-1" />
             </div>
           )}
         </div>

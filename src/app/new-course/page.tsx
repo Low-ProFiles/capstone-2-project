@@ -6,7 +6,6 @@ import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
 import {
   REGIONS_HIERARCHICAL,
-  HierarchicalRegion,
 } from "@/constants/regions-hierarchical";
 import type { SpotReq } from "@/types/course";
 

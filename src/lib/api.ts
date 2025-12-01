@@ -116,7 +116,7 @@ export interface GetCoursesParams {
   q?: string;
   categoryId?: string;
   region?: string;
-  maxCost?: number;
+  max_cost?: number;
   sortType?: string;
   page?: number;
   size?: number;
@@ -198,6 +198,22 @@ export const updateUserProfile = (
     body: JSON.stringify(profileData),
   });
 };
+
+export const getMyCourses = (token: string): Promise<Page<CourseSummary>> => {
+  return apiFetch(`/api/profile/me/courses`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export const getMyLikedCourses = (token: string): Promise<Page<CourseSummary>> => {
+  return apiFetch(`/api/profile/me/liked-courses`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 
 // --- File Upload --- //
 export const uploadFile = (

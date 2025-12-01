@@ -102,19 +102,23 @@ const HomePageClient = () => {
       }
       return;
     }
-    if (courseIdFromQuery && displayCourses.length > 0 && !selectedCourseId) {
-      const courseToSelect = displayCourses.find(
-        (c) => c.id === courseIdFromQuery
-      );
-      if (courseToSelect) {
-        // We need a `Place` object for handleMarkerClick
-        const marker: Place = {
-          id: courseToSelect.id,
-          name: courseToSelect.title,
-          lat: courseToSelect.lat,
-          lng: courseToSelect.lng,
-        };
-        handleMarkerClick(marker);
+    
+    if (courseIdFromQuery && displayCourses.length > 0) {
+      // If the sheet should be open for a different course, or if it's currently closed
+      if (courseIdFromQuery !== selectedCourseId) {
+        const courseToSelect = displayCourses.find(
+          (c) => c.id === courseIdFromQuery
+        );
+        if (courseToSelect) {
+          // We need a `Place` object for handleMarkerClick
+          const marker: Place = {
+            id: courseToSelect.id,
+            name: courseToSelect.title,
+            lat: courseToSelect.lat,
+            lng: courseToSelect.lng,
+          };
+          handleMarkerClick(marker);
+        }
       }
     }
   }, [
