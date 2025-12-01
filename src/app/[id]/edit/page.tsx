@@ -133,7 +133,7 @@ export default function EditCoursePage() {
   }, [mainRegion]);
 
   useEffect(() => {
-    if (courseDetails && mainRegion !== courseDetails.categoryId.substring(0,2)) {
+    if (courseDetails && courseDetails.categoryId && mainRegion !== courseDetails.categoryId.substring(0,2)) {
       setSubRegion("");
     }
   }, [mainRegion, courseDetails]);
