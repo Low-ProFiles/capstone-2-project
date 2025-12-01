@@ -4,7 +4,10 @@ import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/types";
-import { REGIONS, Region } from "@/constants/regions";
+import {
+  REGIONS_HIERARCHICAL,
+  HierarchicalRegion,
+} from "@/constants/regions-hierarchical";
 import type { SpotReq } from "@/types/course";
 
 const AddSpotModal = dynamic(() => import("@/components/course/AddSpotModal"), {
@@ -37,7 +40,10 @@ export default function NewCoursePage() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  const [selectedParentRegionCode, setSelectedParentRegionCode] =
+    useState<string>("");
+  const [selectedChildRegionCode, setSelectedChildRegionCode] =
+    useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
@@ -66,6 +72,13 @@ export default function NewCoursePage() {
       return;
     }
 
+    const parentRegion = REGIONS_HIERARCHICAL.find(
+      (r) => r.code === selectedParentRegionCode
+    );
+    const childRegion = parentRegion?.children?.find(
+      (c) => c.code === selectedChildRegionCode
+    );
+
     // --- Start Validation ---
     if (!title.trim()) {
       alert("코스 제목을 입력해주세요.");
@@ -79,8 +92,13 @@ export default function NewCoursePage() {
       alert("카테고리를 선택해주세요.");
       return;
     }
-    if (!selectedRegion) {
-      alert("지역을 선택해주세요.");
+    if (!parentRegion) {
+      alert("시/도 지역을 선택해주세요.");
+      return;
+    }
+    // "시까지는 필수로 입력" 규칙 적용: 부모 지역이 자식 지역을 가지고 있다면, 자식 지역은 반드시 선택되어야 함
+    if (parentRegion.children && parentRegion.children.length > 0 && !childRegion) {
+      alert("세부 지역(시/군/구)을 선택해주세요.");
       return;
     }
     if (!coverImageUrl) {
@@ -108,13 +126,16 @@ export default function NewCoursePage() {
     }
     // --- End Validation ---
 
+    // 최종적으로 제출할 지역 정보. 자식 지역이 있으면 자식 지역을, 없으면 부모 지역을 사용
+    const finalRegion = childRegion || parentRegion;
+
     try {
       const courseData = {
         title,
         description,
         categoryId: selectedCategory,
-        regionCode: selectedRegion.code,
-        regionName: selectedRegion.name,
+        regionCode: finalRegion.code,
+        regionName: finalRegion.name,
         tags,
         coverImageUrl,
         spots,
@@ -197,24 +218,54 @@ export default function NewCoursePage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="region">지역</Label>
+                <Label htmlFor="parent-region">지역 (시/도)</Label>
                 <select
-                  id="region"
-                  value={selectedRegion?.code || ""}
-                  onChange={(e) =>
-                    setSelectedRegion(
-                      REGIONS.find((r) => r.code === e.target.value) || null
-                    )
-                  }
+                  id="parent-region"
+                  value={selectedParentRegionCode}
+                  onChange={(e) => {
+                    setSelectedParentRegionCode(e.target.value);
+                    setSelectedChildRegionCode(""); // 시/도 변경 시 자식 지역 초기화
+                  }}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   <option value="" disabled>
-                    지역 선택
+                    시/도 선택
                   </option>
-                  {REGIONS.map((region) => (
+                  {REGIONS_HIERARCHICAL.map((region) => (
                     <option key={region.code} value={region.code}>
                       {region.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="child-region">세부 지역 (시/군/구)</Label>
+                <select
+                  id="child-region"
+                  value={selectedChildRegionCode}
+                  onChange={(e) => setSelectedChildRegionCode(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={
+                    !selectedParentRegionCode ||
+                    (REGIONS_HIERARCHICAL.find(
+                      (r) => r.code === selectedParentRegionCode
+                    )?.children?.length || 0) === 0
+                  }
+                  required={
+                    (REGIONS_HIERARCHICAL.find(
+                      (r) => r.code === selectedParentRegionCode
+                    )?.children?.length || 0) > 0
+                  }
+                >
+                  <option value="" disabled>
+                    세부 지역 선택
+                  </option>
+                  {REGIONS_HIERARCHICAL.find(
+                    (r) => r.code === selectedParentRegionCode
+                  )?.children?.map((child) => (
+                    <option key={child.code} value={child.code}>
+                      {child.name}
                     </option>
                   ))}
                 </select>
