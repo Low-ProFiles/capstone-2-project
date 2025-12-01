@@ -66,7 +66,7 @@ export default function EditCoursePage() {
     const fetchInitialData = async () => {
       try {
         const fetchedCategories = await getCategories();
-        setCategories(fetchedCategories);
+        setCategories(fetchedCategories.filter(category => category.name !== '테마'));
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }

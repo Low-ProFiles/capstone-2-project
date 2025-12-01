@@ -22,7 +22,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ onSelectCategory, selec
       try {
         setLoading(true);
         const data = await getCategories();
-        setCategories(data);
+        setCategories(data.filter(category => category.name !== '테마'));
       } catch (err: unknown) {
         setError((err as Error).message);
       } finally {

@@ -49,10 +49,10 @@ export default function NewCoursePage() {
     const fetchCategories = async () => {
       try {
         const fetchedCategories = await getCategories();
-        setCategories(fetchedCategories);
-        if (fetchedCategories.length > 0) {
-          setSelectedCategory(fetchedCategories[0].id);
-        }
+        const filteredCategories = fetchedCategories.filter(category => category.name !== '테마');
+        setCategories(filteredCategories);
+        setSelectedCategory(""); // Do not auto-select a category
+
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
