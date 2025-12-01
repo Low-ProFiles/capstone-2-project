@@ -12,7 +12,7 @@ interface CourseCardProps {
 const CourseCard = ({ course }: CourseCardProps) => {
   return (
     <Card className="h-full flex flex-col">
-      <Link href={`/courses/${course.id}`} className="flex flex-col flex-grow">
+      <Link href={`/${course.id}`} className="flex flex-col flex-grow">
         <CardHeader>
           <Image 
             src={course.coverImageUrl || '/images/default-course.png'} 

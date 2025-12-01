@@ -35,7 +35,10 @@ const SpotCard = ({ spot }: { spot: SpotRes }) => (
 );
 
 const RecommendationCard = ({ course }: { course: CourseSummary }) => (
-  <Link href={`/?courseId=${course.id}`} className="block border p-2 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+  <Link
+    href={`/?courseId=${course.id}`}
+    className="block border p-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+  >
     <div className="flex items-center space-x-2">
       {course.coverImageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -203,9 +206,15 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
                     <p className="text-gray-600 mt-1">
                       {courseDetails.description}
                     </p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      By {courseDetails.creatorDisplayName}
-                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
+                      <span>By {courseDetails.creatorDisplayName}</span>
+                      <span className="font-semibold">
+                        📍 {courseDetails.spots.length}개 스팟
+                      </span>
+                      <span className="font-semibold">
+                        🗺️ {courseDetails.regionName}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
@@ -225,7 +234,7 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
                       <>
                         <button
                           onClick={() =>
-                            router.push(`/courses/${courseId}/edit`)
+                            router.push(`/${courseId}/edit`)
                           }
                           className="flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200"
                         >
@@ -294,10 +303,10 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
                           )}
                         {recommendations.sameCategory &&
                           recommendations.sameCategory.length > 0 && (
-                                                        <div>
-                                                          <p className="font-medium text-gray-700">
-                                                            같은 카테고리
-                                                          </p>
+                            <div>
+                              <p className="font-medium text-gray-700">
+                                같은 카테고리
+                              </p>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                 {recommendations.sameCategory.map(
                                   (course: CourseSummary) => (
@@ -312,10 +321,10 @@ const CourseDetailSheet = ({ courseId, onClose }: CourseDetailSheetProps) => {
                           )}
                         {recommendations.sameRegion &&
                           recommendations.sameRegion.length > 0 && (
-                                                        <div>
-                                                          <p className="font-medium text-gray-700">
-                                                            같은 지역
-                                                          </p>
+                            <div>
+                              <p className="font-medium text-gray-700">
+                                같은 지역
+                              </p>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                 {recommendations.sameRegion.map(
                                   (course: CourseSummary) => (

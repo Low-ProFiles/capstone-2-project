@@ -322,7 +322,7 @@ export default function NewCoursePage() {
       {
         onSuccess: (data) => {
           alert("코스가 성공적으로 생성되었습니다!");
-          router.push(`/courses/${data.id}`);
+          router.push(`/${data.id}`);
         },
         onError: (error) => {
           alert(`코스 생성에 실패했습니다: ${error.message}`);

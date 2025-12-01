@@ -1,4 +1,4 @@
-// src/app/courses/[id]/edit/page.tsx
+// src/app/[id]/edit/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
