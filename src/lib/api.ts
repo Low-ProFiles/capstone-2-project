@@ -116,7 +116,7 @@ export interface GetCoursesParams {
   q?: string;
   categoryId?: string;
   region?: string;
-  max_cost?: number;
+  maxCost?: number;
   sortType?: string;
   page?: number;
   size?: number;
