@@ -6,9 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface CourseCardProps {
   course: CourseSummary;
+  creatorName?: string;
 }
 
-export const CourseCard = ({ course }: CourseCardProps) => {
+export const CourseCard = ({ course, creatorName }: CourseCardProps) => {
+  const authorName = course.creatorDisplayName || creatorName;
+
   return (
     <Link href={`/?courseId=${course.id}`}>
       <Card className="h-full hover:shadow-lg transition-shadow">
@@ -34,9 +37,11 @@ export const CourseCard = ({ course }: CourseCardProps) => {
             <span>{course.regionName}</span>
             <span>{(course.estimatedCost || 0).toLocaleString()}원</span>
           </div>
-          <div className="mt-2 text-xs text-gray-500">
-            By {course.creatorDisplayName}
-          </div>
+          {authorName && (
+            <div className="mt-2 text-xs text-gray-500">
+              By {authorName}
+            </div>
+          )}
         </CardContent>
       </Card>
     </Link>

@@ -17,7 +17,7 @@ import { getMyCourses, getMyLikedCourses } from "@/lib/api";
 import type { CourseSummary } from "@/types";
 import { CourseCard } from "@/components/course/CourseCard";
 
-const CourseList = ({ title, courses, isLoading, error }: { title: string, courses: CourseSummary[], isLoading: boolean, error: string | null }) => (
+const CourseList = ({ title, courses, isLoading, error, creatorName }: { title: string, courses: CourseSummary[], isLoading: boolean, error: string | null, creatorName?: string }) => (
   <div className="border-t pt-6 mt-6">
     <h3 className="text-xl font-bold mb-4">{title}</h3>
     {isLoading && <Loader2 className="h-6 w-6 animate-spin text-blue-500" />}
@@ -27,7 +27,7 @@ const CourseList = ({ title, courses, isLoading, error }: { title: string, cours
     )}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {courses.map((course) => (
-        <CourseCard key={course.id} course={course} />
+        <CourseCard key={course.id} course={course} creatorName={creatorName} />
       ))}
     </div>
   </div>
@@ -114,6 +114,7 @@ export default function ProfilePage() {
           courses={myCourses} 
           isLoading={myCoursesLoading}
           error={myCoursesError}
+          creatorName={displayName}
         />
       </div>
 
